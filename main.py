@@ -1,8 +1,8 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
 from world import World
-from creatures import Player
-from creatures import Enemy
+from player import Player
+from enemy import Enemy
 
 SPRITE_SCALING = 0.5
 

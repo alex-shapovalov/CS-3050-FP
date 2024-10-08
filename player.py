@@ -35,7 +35,3 @@ class Player(arcade.Sprite):
         elif self.top > SCREEN_HEIGHT - 1:
 
             self.top = SCREEN_HEIGHT - 1
-
-
-class Enemy(arcade.Sprite):
-    x = 0
