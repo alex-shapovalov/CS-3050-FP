@@ -3,7 +3,7 @@ import arcade
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-class Creature(arcade.Sprite):
+class Player(arcade.Sprite):
     """ Player Class """
 
     def update(self):
@@ -35,3 +35,7 @@ class Creature(arcade.Sprite):
         elif self.top > SCREEN_HEIGHT - 1:
 
             self.top = SCREEN_HEIGHT - 1
+
+
+class Enemy(arcade.Sprite):
+    x = 0

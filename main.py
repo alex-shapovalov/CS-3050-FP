@@ -1,7 +1,8 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
 from world import World
-from creatures import Creature
+from creatures import Player
+from creatures import Enemy
 
 SPRITE_SCALING = 0.5
 
@@ -31,7 +32,7 @@ class Game(arcade.Window):
         self.player_list = arcade.SpriteList()
 
         # Set up the player
-        self.player_sprite = Creature("player.png", 0.5)
+        self.player_sprite = Player("player.png", 0.5)
         self.player_sprite.center_x = 50
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
