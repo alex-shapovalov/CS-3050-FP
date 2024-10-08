@@ -19,6 +19,8 @@ class Game(arcade.Window):
      # Call the parent class initializer
         super().__init__(width, height, title)
 
+        #TODO: Change to a texture so we can see if movement is working
+
         self.world = World(COLOR)
 
     def setup(self):
@@ -33,6 +35,8 @@ class Game(arcade.Window):
         self.player_sprite.center_x = 50
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
+
+    #TODO: Spawn enemies off screen
 
     def on_draw(self):
         """
@@ -93,6 +97,8 @@ class Game(arcade.Window):
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
 
             self.player_sprite.change_x = 0
+            
+    #TODO: Camera follows player movement
 
 
 def main():
