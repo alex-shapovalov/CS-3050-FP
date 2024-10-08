@@ -58,19 +58,19 @@ class Game(arcade.Window):
 
         # If the player presses a key, update the speed
 
-        if key == arcade.key.UP:
+        if key == arcade.key.UP or key == arcade.key.W:
 
             self.player_sprite.change_y = MOVEMENT_SPEED
 
-        elif key == arcade.key.DOWN:
+        elif key == arcade.key.DOWN or key == arcade.key.S:
 
             self.player_sprite.change_y = -MOVEMENT_SPEED
 
-        elif key == arcade.key.LEFT:
+        elif key == arcade.key.LEFT or key == arcade.key.A:
 
             self.player_sprite.change_x = -MOVEMENT_SPEED
 
-        elif key == arcade.key.RIGHT:
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
 
             self.player_sprite.change_x = MOVEMENT_SPEED
 
@@ -86,11 +86,11 @@ class Game(arcade.Window):
 
         # handle this.
 
-        if key == arcade.key.UP or key == arcade.key.DOWN:
+        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
 
             self.player_sprite.change_y = 0
 
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
+        elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
 
             self.player_sprite.change_x = 0
 
