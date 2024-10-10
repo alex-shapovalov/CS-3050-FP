@@ -32,9 +32,7 @@ class Game(arcade.Window):
         self.player_list = arcade.SpriteList()
 
         # Set up the player
-        self.player_sprite = Player("player.png", 0.5)
-        self.player_sprite.center_x = 50
-        self.player_sprite.center_y = 50
+        self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player_list.append(self.player_sprite)
 
     #TODO: Spawn enemies off screen
