@@ -12,6 +12,8 @@ SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
 MOVEMENT_SPEED = 5
 
+ENEMY_SPAWN_INTERVAL = 5
+
 COLOR = arcade.color.AMAZON
 
 
@@ -19,6 +21,11 @@ class Game(arcade.Window):
     def __init__(self, width, height, title):
      # Call the parent class initializer
         super().__init__(width, height, title)
+
+        # Keeps track of enemy spawns
+        self.enemy_list = arcade.SpriteList()
+        self.time_since_last_spawn = 0
+        self.spawn_time = ENEMY_SPAWN_INTERVAL
 
         #TODO: Change to a texture so we can see if movement is working
 
@@ -47,6 +54,7 @@ class Game(arcade.Window):
 
         # Draw all the sprites.
         self.player_list.draw()
+        self.enemy_list.draw()
 
     def on_update(self, delta_time):
         """ Movement and game logic """
@@ -54,6 +62,20 @@ class Game(arcade.Window):
         # Move the player
 
         self.player_list.update()
+        self.enemy_list.update()
+
+        self.time_since_last_spawn += delta_time
+        # If an enemy hasn't spawned in x amount of time, spawn another
+        if self.time_since_last_spawn > self.spawn_time:
+            # Create a new enemy to spawn
+            enemy = Enemy(self.player_sprite, self.enemy_list)
+            self.enemy_list.append(enemy)
+            self.time_since_last_spawn = 0
+
+        #TODO: Add code to spawn boss after time interval or after x amount of enemies killed
+
+        # Update enemies
+        self.enemy_list.update()
 
     def on_key_press(self, key, modifiers):
 
