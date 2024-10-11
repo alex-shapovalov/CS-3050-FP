@@ -42,8 +42,6 @@ class Game(arcade.Window):
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player_list.append(self.player_sprite)
 
-    #TODO: Spawn enemies off screen
-
     def on_draw(self):
         """
         Render the screen.
