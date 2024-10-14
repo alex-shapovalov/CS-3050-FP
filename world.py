@@ -24,7 +24,7 @@ ROOM_SIZE = 400     # Room size in pyarcade units
 SEED = int(datetime.datetime.now().timestamp())  # Seed for world generation
 # Every room with a noise value greater than INDOOR_CUTOFF will be an indoor room.
 # Should be between 0 and 1.
-INDOOR_CUTOFF = 0.4
+INDOOR_CUTOFF = 0.5
 
 class World(arcade.Window):
 
