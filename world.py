@@ -17,14 +17,20 @@ from perlin_noise import PerlinNoise
 from room import Room
 
 
-#Constants
+# Constants
 
-WORLD_SIZE = 9      # World size in rooms.
-ROOM_SIZE = 400     # Room size in pyarcade units
-SEED = int(datetime.datetime.now().timestamp())  # Seed for world generation
+# World size in rooms.
+# This must be odd, or there are no courtyards. I don't know why.
+WORLD_SIZE = 19
+# Room size in pyarcade units
+# The rooms will ultimately be much larger than this, but small size shows the distribution
+ROOM_SIZE = 200
+# Seed for world generation
+SEED = int(datetime.datetime.now().timestamp())
 # Every room with a noise value greater than INDOOR_CUTOFF will be an indoor room.
-# Should be between 0 and 1.
-INDOOR_CUTOFF = 0.5
+# Must be between 0 and 1.
+# Recommend between 0.3 and 0.7.
+INDOOR_CUTOFF = 0.43
 
 class World(arcade.Window):
 
