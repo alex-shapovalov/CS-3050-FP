@@ -7,8 +7,8 @@ from creatures import Creature
 
 SPRITE_SCALING = 0.5
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1400
+SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
 MOVEMENT_SPEED = 5
