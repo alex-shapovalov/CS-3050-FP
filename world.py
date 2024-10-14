@@ -16,7 +16,7 @@ from perlin_noise import PerlinNoise
 import datetime
 
 #Constants
-WORLD_SIZE = 8      # World size in rooms. This should be an even number, or the player might get stuck in a wall.
+WORLD_SIZE = 9      # World size in rooms.
 ROOM_SIZE = 400     # Room size in pyarcade units
 SEED = int(datetime.datetime.now().timestamp())  # Seed for world generation
 
@@ -34,10 +34,14 @@ class World(arcade.Window):
         arcade.set_background_color(color)
 
         # Let's make some noise
-        noise = PerlinNoise(octaves=1, seed=int(SEED)) #Returns a Perlin Noise object
+        world_noise = PerlinNoise(octaves=1, seed=int(SEED)) #Returns a Perlin Noise object
 
         # Create 2d array, to hold all the rooms in the world
-        rooms = []
+        rows, cols = (WORLD_SIZE, WORLD_SIZE)
+        rooms = [[0 for i in range(cols)] for j in range(rows)]
+        for i in range(cols):
+            for j in range(rows):
+                rooms[i][j] = world_noise.noise(coordinates = [i,j])
 
 
     def setup(self):
