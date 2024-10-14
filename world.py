@@ -44,14 +44,14 @@ class World(arcade.Window):
 
         # Create 2d array, to hold all the noise rooms
         rows, cols = (WORLD_SIZE, WORLD_SIZE)
-        rooms = [[0 for i in range(cols)] for j in range(rows)]
+        self.rooms = [[0 for i in range(cols)] for j in range(rows)]
         for i in range(cols):
             for j in range(rows):
                 indoor = (( world_noise.noise(coordinates = [i/rows,j/cols]) + 1 ) / 2) >= INDOOR_CUTOFF
                 size = ROOM_SIZE
                 x = j * ROOM_SIZE
                 y = i * ROOM_SIZE
-                rooms[i][j] = Room(x = x, y = y, size = size, indoor = indoor)
+                self.rooms[i][j] = Room(x = x, y = y, size = size, indoor = indoor)
         #print(rooms)
 
         # Create 2d array, to hold all the rooms

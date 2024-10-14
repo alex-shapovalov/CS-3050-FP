@@ -15,13 +15,11 @@ MOVEMENT_SPEED = 5
 
 COLOR = arcade.color.AMAZON
 
-
 class Game(arcade.Window):
     def __init__(self, width, height, title):
      # Call the parent class initializer
         super().__init__(width, height, title)
 
-        #TODO: Change to a texture so we can see if movement is working
         self.background = arcade.load_texture("grass.jfif")
 
         self.world = World(COLOR)
@@ -56,6 +54,16 @@ class Game(arcade.Window):
         arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
                                             SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                                             self.background)
+
+        # Draw the rooms.
+        # For now, indoor rooms are just grey rectangles.
+        # The background is already green, so there's no need to draw the outdoor rooms.
+        for i in range(len(self.world.rooms)):
+            for j in range(len(self.world.rooms[i])):
+                room = self.world.rooms[i][j];
+                if (room.indoor):
+                    arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+
         # Draw all the sprites.
         self.player_list.draw()
 
