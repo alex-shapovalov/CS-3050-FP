@@ -12,10 +12,13 @@ python -m arcade.examples.sprite_move_keyboard
 """
 
 import arcade
+from perlin_noise import PerlinNoise
+import datetime
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
+#Constants
+WORLD_SIZE = 8              # World size in rooms. This should be an even number, or the player might get stuck in a wall.
+ROOM_SIZE = 400             # Room size in pyarcade units
+SEED = int(datetime.now())  # Seed for world generation
 
 class World(arcade.Window):
 
@@ -30,8 +33,9 @@ class World(arcade.Window):
         # Set the background color
         arcade.set_background_color(color)
 
+        noise = PerlinNoise(n_dims=2, octaves=1, seed=int(SEED)) #Returns a Perlin Noise object
+
+
+
     def setup(self):
         pass
-
-
-
