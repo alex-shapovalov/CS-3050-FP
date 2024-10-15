@@ -2,8 +2,8 @@ import arcade
 import random
 import math
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1400
+SCREEN_HEIGHT = 1000
 
 SPRITE_SCALING = 0.5
 ENEMY_SPEED = 4
