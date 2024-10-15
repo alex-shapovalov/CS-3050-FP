@@ -31,19 +31,29 @@ class Game(arcade.Window):
 
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.scene = arcade.Scene()
+        self.wall_list = arcade.SpriteList()
 
     def setup(self):
         self.world.setup()
         """ Set up the game and initialize the variables. """
+        self.scene.add_sprite_list("enemy_back")
+        self.scene.add_sprite_list("player_back")
+        self.scene.add_sprite_list("enemy_mid_b")
+        self.scene.add_sprite_list("enemy_mid_f")
+        self.scene.add_sprite_list("player_fore")
+        self.scene.add_sprite_list("enemy_fore")
 
-        # Sprite lists
-        self.player_list = arcade.SpriteList()
+
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, hit_box_algorithm=None)
+        self.wall_list.append(wall)
+        self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player_sprite.center_x = SCREEN_WIDTH/2
         self.player_sprite.center_y = SCREEN_HEIGHT/2
-        self.player_list.append(self.player_sprite)
+        # self.player_list.append(self.player_sprite)
 
     #TODO: Spawn enemies off screen
 
@@ -71,21 +81,19 @@ class Game(arcade.Window):
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
-        # Draw all the sprites.
-        self.player_list.draw()
-        self.enemy_list.draw()
-
+        self.scene.draw()
 
     def on_update(self, delta_time):
         """ Movement and game logic """
 
         # Move the player
 
-        self.player_list.update()
+        self.player_sprite.update()
         cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH/2, self.player_sprite.center_y - SCREEN_HEIGHT/2)
         self.camera.move(cam_loc)
 
         self.enemy_list.update()
+
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
@@ -99,6 +107,58 @@ class Game(arcade.Window):
 
         # Update enemies
         self.enemy_list.update()
+
+        # get the closest wall to the player
+        p_wall = arcade.get_closest_sprite(self.player_sprite, self.wall_list)
+
+        # Check if the players y-index is above or below the closest wall's y
+        if self.player_sprite.center_y - self.player_sprite.height/2 < p_wall[0].center_y - p_wall[0].height/2 and self.player_sprite not in self.scene.get_sprite_list("player_fore"):
+            self.scene.get_sprite_list("player_fore").append(self.player_sprite)
+
+            if self.player_sprite in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").remove(self.player_sprite)
+
+        elif self.player_sprite.center_y - self.player_sprite.height/2 > p_wall[0].center_y - p_wall[0].height/2 and self.player_sprite not in self.scene.get_sprite_list("player_back"):
+            self.scene.get_sprite_list("player_back").append(self.player_sprite)
+
+            if self.player_sprite in self.scene.get_sprite_list("player_fore"):
+                self.scene.get_sprite_list("player_fore").remove(self.player_sprite)
+
+
+
+        # Update enemies z-index:
+        for enem in self.enemy_list:
+            # get closest wall to enemy
+            e_wall = arcade.get_closest_sprite(enem, self.wall_list)
+
+            # find bottom point of sprites for later
+            enem_bottom = enem.center_y - enem.height/2
+            e_wall_bottom = e_wall[0].center_y - e_wall[0].height/2
+
+            # Remove enem from scene sprite lists to avoid conflicts when appending later
+            if enem in self.scene.get_sprite_list("enemy_back"):
+                self.scene.get_sprite_list("enemy_back").remove(enem)
+            elif enem in self.scene.get_sprite_list("enemy_mid_b"):
+                self.scene.get_sprite_list("enemy_mid_b").remove(enem)
+            elif enem in self.scene.get_sprite_list("enemy_mid_f"):
+                self.scene.get_sprite_list("enemy_mid_f").remove(enem)
+            elif enem in self.scene.get_sprite_list("enemy_fore"):
+                self.scene.get_sprite_list("enemy_fore").remove(enem)
+
+
+            # Determine if enemy is above or below the closest wall and the player
+            if enem_bottom < e_wall_bottom:
+                if enem_bottom > self.player_sprite.center_y - self.player_sprite.height/2:
+                    self.scene.get_sprite_list("enemy_mid_f").append(enem)
+                else:
+                    self.scene.get_sprite_list("enemy_fore").append(enem)
+
+            elif enem_bottom > e_wall_bottom:
+                if enem_bottom < self.player_sprite.center_y - self.player_sprite.height/2:
+                    self.scene.get_sprite_list("enemy_mid_b").append(enem)
+                else:
+                    self.scene.get_sprite_list("enemy_back").append(enem)
+
 
     def on_key_press(self, key, modifiers):
 
