@@ -5,7 +5,6 @@ from world import World
 from player import Player
 from enemy import Enemy
 
-
 SPRITE_SCALING = 0.5
 
 SCREEN_WIDTH = 1400
@@ -17,9 +16,10 @@ ENEMY_SPAWN_INTERVAL = 5
 
 COLOR = arcade.color.AMAZON
 
+
 class Game(arcade.Window):
     def __init__(self, width, height, title):
-     # Call the parent class initializer
+        # Call the parent class initializer
         super().__init__(width, height, title)
 
         self.background = arcade.load_texture("grass.jfif")
@@ -44,18 +44,17 @@ class Game(arcade.Window):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, hit_box_algorithm=None)
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y = SCREEN_HEIGHT / 2 + 30, hit_box_algorithm=None)
         self.wall_list.append(wall)
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.player_sprite.center_x = SCREEN_WIDTH/2
-        self.player_sprite.center_y = SCREEN_HEIGHT/2
+        self.player_sprite.center_x = SCREEN_WIDTH / 2
+        self.player_sprite.center_y = SCREEN_HEIGHT / 2
         # self.player_list.append(self.player_sprite)
 
-    #TODO: Spawn enemies off screen
+    # TODO: Spawn enemies off screen
 
     def on_draw(self):
         """
@@ -66,7 +65,7 @@ class Game(arcade.Window):
         self.clear()
         self.camera.use()
         arcade.draw_lrwh_rectangle_textured(0, 0,
-                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                                             self.background)
         arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
                                             SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
@@ -89,11 +88,11 @@ class Game(arcade.Window):
         # Move the player
 
         self.player_sprite.update()
-        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH/2, self.player_sprite.center_y - SCREEN_HEIGHT/2)
+        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
+                                   self.player_sprite.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
 
         self.enemy_list.update()
-
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
@@ -103,7 +102,7 @@ class Game(arcade.Window):
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
 
-        #TODO: Add code to spawn boss after time interval or after x amount of enemies killed
+        # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
         # Update enemies
         self.enemy_list.update()
@@ -112,19 +111,19 @@ class Game(arcade.Window):
         p_wall = arcade.get_closest_sprite(self.player_sprite, self.wall_list)
 
         # Check if the players y-index is above or below the closest wall's y
-        if self.player_sprite.center_y - self.player_sprite.height/2 < p_wall[0].center_y - p_wall[0].height/2 and self.player_sprite not in self.scene.get_sprite_list("player_fore"):
+        if self.player_sprite.center_y - self.player_sprite.height / 2 < p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_fore"):
             self.scene.get_sprite_list("player_fore").append(self.player_sprite)
 
             if self.player_sprite in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player_sprite)
 
-        elif self.player_sprite.center_y - self.player_sprite.height/2 > p_wall[0].center_y - p_wall[0].height/2 and self.player_sprite not in self.scene.get_sprite_list("player_back"):
+        elif self.player_sprite.center_y - self.player_sprite.height / 2 > p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player_sprite)
 
             if self.player_sprite in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player_sprite)
-
-
 
         # Update enemies z-index:
         for enem in self.enemy_list:
@@ -132,8 +131,8 @@ class Game(arcade.Window):
             e_wall = arcade.get_closest_sprite(enem, self.wall_list)
 
             # find bottom point of sprites for later
-            enem_bottom = enem.center_y - enem.height/2
-            e_wall_bottom = e_wall[0].center_y - e_wall[0].height/2
+            enem_bottom = enem.center_y - enem.height / 2
+            e_wall_bottom = e_wall[0].center_y - e_wall[0].height / 2
 
             # Remove enem from scene sprite lists to avoid conflicts when appending later
             if enem in self.scene.get_sprite_list("enemy_back"):
@@ -145,20 +144,18 @@ class Game(arcade.Window):
             elif enem in self.scene.get_sprite_list("enemy_fore"):
                 self.scene.get_sprite_list("enemy_fore").remove(enem)
 
-
             # Determine if enemy is above or below the closest wall and the player
             if enem_bottom < e_wall_bottom:
-                if enem_bottom > self.player_sprite.center_y - self.player_sprite.height/2:
+                if enem_bottom > self.player_sprite.center_y - self.player_sprite.height / 2:
                     self.scene.get_sprite_list("enemy_mid_f").append(enem)
                 else:
                     self.scene.get_sprite_list("enemy_fore").append(enem)
 
             elif enem_bottom > e_wall_bottom:
-                if enem_bottom < self.player_sprite.center_y - self.player_sprite.height/2:
+                if enem_bottom < self.player_sprite.center_y - self.player_sprite.height / 2:
                     self.scene.get_sprite_list("enemy_mid_b").append(enem)
                 else:
                     self.scene.get_sprite_list("enemy_back").append(enem)
-
 
     def on_key_press(self, key, modifiers):
 
@@ -177,7 +174,6 @@ class Game(arcade.Window):
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.player_sprite.change_x = MOVEMENT_SPEED
-
 
     def on_key_release(self, key, modifiers):
 
