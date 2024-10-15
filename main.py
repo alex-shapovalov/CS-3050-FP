@@ -10,7 +10,7 @@ SPRITE_SCALING = 0.5
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
-SCREEN_TITLE = "Move Sprite with Keyboard Example"
+SCREEN_TITLE = "Game"
 
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
@@ -67,7 +67,7 @@ class Game(arcade.Window):
         # The background is already green, so there's no need to draw the outdoor rooms.
         for i in range(len(self.world.rooms)):
             for j in range(len(self.world.rooms[i])):
-                room = self.world.rooms[i][j];
+                room = self.world.rooms[i][j]
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
