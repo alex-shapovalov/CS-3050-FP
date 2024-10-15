@@ -12,10 +12,19 @@ python -m arcade.examples.sprite_move_keyboard
 """
 
 import arcade
+import datetime
+from perlin_noise import PerlinNoise
+from room import Room
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
 
+#Constants
+
+WORLD_SIZE = 9      # World size in rooms.
+ROOM_SIZE = 400     # Room size in pyarcade units
+SEED = int(datetime.datetime.now().timestamp())  # Seed for world generation
+# Every room with a noise value greater than INDOOR_CUTOFF will be an indoor room.
+# Should be between 0 and 1.
+INDOOR_CUTOFF = 0.5
 
 class World(arcade.Window):
 
@@ -30,8 +39,24 @@ class World(arcade.Window):
         # Set the background color
         arcade.set_background_color(color)
 
+        # Let's make some noise
+        world_noise = PerlinNoise(octaves=100, seed=int(SEED))
+
+        # Create 2d array, to hold all the noise rooms
+        rows, cols = (WORLD_SIZE, WORLD_SIZE)
+        self.rooms = [[0 for i in range(cols)] for j in range(rows)]
+        for i in range(cols):
+            for j in range(rows):
+                indoor = (( world_noise.noise(coordinates = [i/rows,j/cols]) + 1 ) / 2) >= INDOOR_CUTOFF
+                size = ROOM_SIZE
+                x = j * ROOM_SIZE
+                y = i * ROOM_SIZE
+                self.rooms[i][j] = Room(x = x, y = y, size = size, indoor = indoor)
+        #print(rooms)
+
+        # Create 2d array, to hold all the rooms
+
+
+
     def setup(self):
         pass
-
-
-
