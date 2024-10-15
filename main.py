@@ -1,35 +1,29 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
+import pyglet
 from world import World
-from player import Player
-from enemy import Enemy
+from creatures import Creature
+
 
 SPRITE_SCALING = 0.5
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1400
+SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
 MOVEMENT_SPEED = 5
 
-ENEMY_SPAWN_INTERVAL = 5
-
 COLOR = arcade.color.AMAZON
-
 
 class Game(arcade.Window):
     def __init__(self, width, height, title):
      # Call the parent class initializer
         super().__init__(width, height, title)
 
-        # Keeps track of enemy spawns
-        self.enemy_list = arcade.SpriteList()
-        self.time_since_last_spawn = 0
-        self.spawn_time = ENEMY_SPAWN_INTERVAL
-
-        #TODO: Change to a texture so we can see if movement is working
+        self.background = arcade.load_texture("grass.jfif")
 
         self.world = World(COLOR)
+        self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 
     def setup(self):
         self.world.setup()
@@ -39,8 +33,12 @@ class Game(arcade.Window):
         self.player_list = arcade.SpriteList()
 
         # Set up the player
-        self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player_sprite = Creature("player.png", 0.5)
+        self.player_sprite.center_x = SCREEN_WIDTH/2
+        self.player_sprite.center_y = SCREEN_HEIGHT/2
         self.player_list.append(self.player_sprite)
+
+    #TODO: Spawn enemies off screen
 
     def on_draw(self):
         """
@@ -49,10 +47,26 @@ class Game(arcade.Window):
 
         # This command has to happen before we start drawing
         self.clear()
+        self.camera.use()
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                                            self.background)
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
+                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                                            self.background)
+
+        # Draw the rooms.
+        # For now, indoor rooms are just grey rectangles.
+        # The background is already green, so there's no need to draw the outdoor rooms.
+        for i in range(len(self.world.rooms)):
+            for j in range(len(self.world.rooms[i])):
+                room = self.world.rooms[i][j];
+                if (room.indoor):
+                    arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         # Draw all the sprites.
         self.player_list.draw()
-        self.enemy_list.draw()
+
 
     def on_update(self, delta_time):
         """ Movement and game logic """
@@ -60,20 +74,8 @@ class Game(arcade.Window):
         # Move the player
 
         self.player_list.update()
-        self.enemy_list.update()
-
-        self.time_since_last_spawn += delta_time
-        # If an enemy hasn't spawned in x amount of time, spawn another
-        if self.time_since_last_spawn > self.spawn_time:
-            # Create a new enemy to spawn
-            enemy = Enemy(self.player_sprite, self.enemy_list)
-            self.enemy_list.append(enemy)
-            self.time_since_last_spawn = 0
-
-        #TODO: Add code to spawn boss after time interval or after x amount of enemies killed
-
-        # Update enemies
-        self.enemy_list.update()
+        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH/2, self.player_sprite.center_y - SCREEN_HEIGHT/2)
+        self.camera.move(cam_loc)
 
     def on_key_press(self, key, modifiers):
 
@@ -82,20 +84,17 @@ class Game(arcade.Window):
         # If the player presses a key, update the speed
 
         if key == arcade.key.UP or key == arcade.key.W:
-
             self.player_sprite.change_y = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
-
             self.player_sprite.change_y = -MOVEMENT_SPEED
 
         elif key == arcade.key.LEFT or key == arcade.key.A:
-
             self.player_sprite.change_x = -MOVEMENT_SPEED
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-
             self.player_sprite.change_x = MOVEMENT_SPEED
+
 
     def on_key_release(self, key, modifiers):
 
