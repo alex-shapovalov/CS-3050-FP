@@ -54,8 +54,6 @@ class Game(arcade.Window):
         self.player_sprite.center_y = SCREEN_HEIGHT / 2
         # self.player_list.append(self.player_sprite)
 
-    # TODO: Spawn enemies off screen
-
     def on_draw(self):
         """
         Render the screen.
@@ -98,7 +96,7 @@ class Game(arcade.Window):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player_sprite, self.enemy_list)
+            enemy = Enemy(self.player_sprite, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
 

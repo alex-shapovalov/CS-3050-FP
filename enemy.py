@@ -2,17 +2,15 @@ import arcade
 import random
 import math
 
-SCREEN_WIDTH = 1400
-SCREEN_HEIGHT = 1000
+from PIL.ImageChops import screen
 
-SPRITE_SCALING = 0.5
 ENEMY_SPEED = 4
 PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
 
 class Enemy(arcade.Sprite):
-    def __init__(self, player_sprite, enemy_list, health = 100, damage = 10, attack_type = "melee", image="enemy.png", scaling=SPRITE_SCALING):
-        super().__init__(image, scaling)
+    def __init__(self, player_sprite, enemy_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
+        super().__init__(image, sprite_scaling)
         self.player_sprite = player_sprite
         self.enemy_list = enemy_list
         self.health = health
@@ -22,17 +20,17 @@ class Enemy(arcade.Sprite):
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
         if spawn_location == "top":
-            self.center_x = random.randint(0, SCREEN_WIDTH)
-            self.center_y = SCREEN_HEIGHT + 50
+            self.center_x = random.randint(0, screen_width)
+            self.center_y = screen_height + 50
         elif spawn_location == "bottom":
-            self.center_x = random.randint(0, SCREEN_WIDTH)
+            self.center_x = random.randint(0, screen_width)
             self.center_y = -50
         elif spawn_location == "left":
             self.center_x = -50
-            self.center_y = random.randint(0, SCREEN_HEIGHT)
+            self.center_y = random.randint(0, screen_height)
         elif spawn_location == "right":
-            self.center_x = SCREEN_WIDTH + 50
-            self.center_y = random.randint(0, SCREEN_HEIGHT)
+            self.center_x = screen_width + 50
+            self.center_y = random.randint(0, screen_height)
 
     def update(self):
         distance = math.sqrt((self.player_sprite.center_x - self.center_x) ** 2 + (self.player_sprite.center_y - self.center_y) ** 2)
