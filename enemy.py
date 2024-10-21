@@ -11,13 +11,14 @@ PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
 
 class Enemy(arcade.Sprite):
-    def __init__(self, player_sprite, enemy_list, health = 100, damage = 10, attack_type = "melee", image="enemy.png", scaling=SPRITE_SCALING):
+    def __init__(self, player_sprite, enemy_list, health = 100, damage = 10, attack_type = "melee", image="char_hit_box.png", scaling=SPRITE_SCALING):
         super().__init__(image, scaling)
         self.player_sprite = player_sprite
         self.enemy_list = enemy_list
         self.health = health
         self.damage = damage
         self.attack_type = attack_type
+
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -33,6 +34,12 @@ class Enemy(arcade.Sprite):
         elif spawn_location == "right":
             self.center_x = SCREEN_WIDTH + 50
             self.center_y = random.randint(0, SCREEN_HEIGHT)
+
+        self.tex = arcade.Sprite("enemy.png", scale=SPRITE_SCALING, center_x=self.center_x, center_y=self.center_y)
+
+        self.width = self.tex.width
+        self.height = self.tex.height/3
+
 
     def update(self):
         distance = math.sqrt((self.player_sprite.center_x - self.center_x) ** 2 + (self.player_sprite.center_y - self.center_y) ** 2)
@@ -76,6 +83,9 @@ class Enemy(arcade.Sprite):
                 # Separate them at pushback_speed
                 self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
                 self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
+
+        self.tex.center_x = self.center_x
+        self.tex.center_y = self.center_y + self.tex.height/2
 
         super().update()
 
