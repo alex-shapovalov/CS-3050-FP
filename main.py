@@ -4,15 +4,14 @@ import pyglet
 from world import World
 from player import Player
 from enemy import Enemy
-
-SPRITE_SCALING = 0.5
+from menu import MenuView, GuideView
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
-
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
+SPRITE_SCALING = 0.5
 
 COLOR = arcade.color.AMAZON
 
@@ -29,14 +28,17 @@ class Game(arcade.Window):
         self.time_since_last_spawn = 0
         self.spawn_time = ENEMY_SPAWN_INTERVAL
 
+        # Keeps track of world
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
 
     def setup(self):
+        # Setting up the game itself
         self.world.setup()
-        """ Set up the game and initialize the variables. """
+
+        # Setting up wall interactions
         self.scene.add_sprite_list("enemy_back")
         self.scene.add_sprite_list("player_back")
         self.scene.add_sprite_list("enemy_mid_b")
@@ -55,23 +57,13 @@ class Game(arcade.Window):
         # self.player_list.append(self.player_sprite)
 
     def on_draw(self):
-        """
-        Render the screen.
-        """
-
-        # This command has to happen before we start drawing
+        # Render the screen
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0,
-                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
-                                            self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
-                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
-                                            self.background)
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
 
-        # Draw the rooms.
-        # For now, indoor rooms are just grey rectangles.
-        # The background is already green, so there's no need to draw the outdoor rooms.
+        # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
         for i in range(len(self.world.rooms)):
             for j in range(len(self.world.rooms[i])):
                 room = self.world.rooms[i][j]
@@ -81,17 +73,12 @@ class Game(arcade.Window):
         self.scene.draw()
 
     def on_update(self, delta_time):
-        """ Movement and game logic """
-
-        # Move the player
-
+        # Move the player and keep the camera centered
         self.player_sprite.update()
-        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
-                                   self.player_sprite.center_y - SCREEN_HEIGHT / 2)
+        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2, self.player_sprite.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
 
         self.enemy_list.update()
-
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
@@ -105,7 +92,7 @@ class Game(arcade.Window):
         # Update enemies
         self.enemy_list.update()
 
-        # get the closest wall to the player
+        # Get the closest wall to the player
         p_wall = arcade.get_closest_sprite(self.player_sprite, self.wall_list)
 
         # Check if the players y-index is above or below the closest wall's y
@@ -124,43 +111,39 @@ class Game(arcade.Window):
                 self.scene.get_sprite_list("player_fore").remove(self.player_sprite)
 
         # Update enemies z-index:
-        for enem in self.enemy_list:
-            # get closest wall to enemy
-            e_wall = arcade.get_closest_sprite(enem, self.wall_list)
+        for enemy in self.enemy_list:
+            # Get closest wall to the enemy
+            e_wall = arcade.get_closest_sprite(enemy, self.wall_list)
 
             # find bottom point of sprites for later
-            enem_bottom = enem.center_y - enem.height / 2
+            enem_bottom = enemy.center_y - enemy.height / 2
             e_wall_bottom = e_wall[0].center_y - e_wall[0].height / 2
 
             # Remove enem from scene sprite lists to avoid conflicts when appending later
-            if enem in self.scene.get_sprite_list("enemy_back"):
-                self.scene.get_sprite_list("enemy_back").remove(enem)
-            elif enem in self.scene.get_sprite_list("enemy_mid_b"):
-                self.scene.get_sprite_list("enemy_mid_b").remove(enem)
-            elif enem in self.scene.get_sprite_list("enemy_mid_f"):
-                self.scene.get_sprite_list("enemy_mid_f").remove(enem)
-            elif enem in self.scene.get_sprite_list("enemy_fore"):
-                self.scene.get_sprite_list("enemy_fore").remove(enem)
+            if enemy in self.scene.get_sprite_list("enemy_back"):
+                self.scene.get_sprite_list("enemy_back").remove(enemy)
+            elif enemy in self.scene.get_sprite_list("enemy_mid_b"):
+                self.scene.get_sprite_list("enemy_mid_b").remove(enemy)
+            elif enemy in self.scene.get_sprite_list("enemy_mid_f"):
+                self.scene.get_sprite_list("enemy_mid_f").remove(enemy)
+            elif enemy in self.scene.get_sprite_list("enemy_fore"):
+                self.scene.get_sprite_list("enemy_fore").remove(enemy)
 
             # Determine if enemy is above or below the closest wall and the player
             if enem_bottom < e_wall_bottom:
                 if enem_bottom > self.player_sprite.center_y - self.player_sprite.height / 2:
-                    self.scene.get_sprite_list("enemy_mid_f").append(enem)
+                    self.scene.get_sprite_list("enemy_mid_f").append(enemy)
                 else:
-                    self.scene.get_sprite_list("enemy_fore").append(enem)
+                    self.scene.get_sprite_list("enemy_fore").append(enemy)
 
             elif enem_bottom > e_wall_bottom:
                 if enem_bottom < self.player_sprite.center_y - self.player_sprite.height / 2:
-                    self.scene.get_sprite_list("enemy_mid_b").append(enem)
+                    self.scene.get_sprite_list("enemy_mid_b").append(enemy)
                 else:
-                    self.scene.get_sprite_list("enemy_back").append(enem)
+                    self.scene.get_sprite_list("enemy_back").append(enemy)
 
     def on_key_press(self, key, modifiers):
-
-        """Called whenever a key is pressed. """
-
         # If the player presses a key, update the speed
-
         if key == arcade.key.UP or key == arcade.key.W:
             self.player_sprite.change_y = MOVEMENT_SPEED
 
@@ -174,30 +157,42 @@ class Game(arcade.Window):
             self.player_sprite.change_x = MOVEMENT_SPEED
 
     def on_key_release(self, key, modifiers):
-
-        """Called when the user releases a key. """
-
-        # If a player releases a key, zero out the speed.
-
-        # This doesn't work well if multiple keys are pressed.
-
-        # Use 'better move by keyboard' example if you need to
-
-        # handle this.
-
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
-
             self.player_sprite.change_y = 0
 
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-
             self.player_sprite.change_x = 0
 
+def start_game():
+    # Close 'Main Menu' window
+    arcade.close_window()
 
-def main():
-    """ Main function """
+    # Create 'Game' window
     window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.setup()
+    arcade.run()
+
+def show_guide():
+    # Show the guide view with and go back button
+    guide_view = GuideView(go_back_to_menu)
+    arcade.get_window().show_view(guide_view)
+
+def exit_game():
+    # Close the game
+    arcade.close_window()
+
+def go_back_to_menu():
+    # Go back to main menu
+    menu_view = MenuView(start_game, show_guide, exit_game)
+    arcade.get_window().show_view(menu_view)
+
+def main():
+    # Create 'Main Menu' window
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Main Menu")
+
+    # Call MenuView from menu.py with a callback method to start the game when user presses play
+    menu_view = MenuView(start_game, show_guide, exit_game)
+    window.show_view(menu_view)
     arcade.run()
 
 
