@@ -13,8 +13,8 @@ class Player(arcade.Sprite):
         )
 
         # following values are subject to change
+        self.damage = damage
         self.health: int = health
-        self.damage: int = damage
         self.center_x: int = 50
         self.center_y: int = 50
 
@@ -29,12 +29,13 @@ class Player(arcade.Sprite):
 
         self.center_y += self.change_y
 
-    def receive_damage(self, amount):
+    def player_receive_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
             self.kill()
             
-    def give_damage(self, enemy):
+    def player_give_damage(self, enemy):
+        None
         # if self.attack_type == "melee":
             # Player is damaged by contact
             # self.player_sprite.receive_damage(self.damage)

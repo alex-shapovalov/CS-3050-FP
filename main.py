@@ -12,6 +12,7 @@ SCREEN_TITLE = "Game"
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
+PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
 
@@ -51,10 +52,9 @@ class Game(arcade.Window):
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
-        self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.player_sprite.center_x = SCREEN_WIDTH / 2
-        self.player_sprite.center_y = SCREEN_HEIGHT / 2
-        # self.player_list.append(self.player_sprite)
+        self.player = Player(100, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player.center_x = SCREEN_WIDTH / 2
+        self.player.center_y = SCREEN_HEIGHT / 2
 
     def on_draw(self):
         # Render the screen
@@ -74,8 +74,8 @@ class Game(arcade.Window):
 
     def on_update(self, delta_time):
         # Move the player and keep the camera centered
-        self.player_sprite.update()
-        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2, self.player_sprite.center_y - SCREEN_HEIGHT / 2)
+        self.player.update()
+        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2, self.player.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
 
         self.enemy_list.update()
@@ -83,7 +83,7 @@ class Game(arcade.Window):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player_sprite, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
 
@@ -93,22 +93,22 @@ class Game(arcade.Window):
         self.enemy_list.update()
 
         # Get the closest wall to the player
-        p_wall = arcade.get_closest_sprite(self.player_sprite, self.wall_list)
+        p_wall = arcade.get_closest_sprite(self.player, self.wall_list)
 
         # Check if the players y-index is above or below the closest wall's y
-        if self.player_sprite.center_y - self.player_sprite.height / 2 < p_wall[0].center_y - p_wall[
-            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_fore"):
-            self.scene.get_sprite_list("player_fore").append(self.player_sprite)
+        if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_fore"):
+            self.scene.get_sprite_list("player_fore").append(self.player)
 
-            if self.player_sprite in self.scene.get_sprite_list("player_back"):
-                self.scene.get_sprite_list("player_back").remove(self.player_sprite)
+            if self.player in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").remove(self.player)
 
-        elif self.player_sprite.center_y - self.player_sprite.height / 2 > p_wall[0].center_y - p_wall[
-            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_back"):
-            self.scene.get_sprite_list("player_back").append(self.player_sprite)
+        elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
+            self.scene.get_sprite_list("player_back").append(self.player)
 
             if self.player_sprite in self.scene.get_sprite_list("player_fore"):
-                self.scene.get_sprite_list("player_fore").remove(self.player_sprite)
+                self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
         for enemy in self.enemy_list:
@@ -131,13 +131,13 @@ class Game(arcade.Window):
 
             # Determine if enemy is above or below the closest wall and the player
             if enem_bottom < e_wall_bottom:
-                if enem_bottom > self.player_sprite.center_y - self.player_sprite.height / 2:
+                if enem_bottom > self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_f").append(enemy)
                 else:
                     self.scene.get_sprite_list("enemy_fore").append(enemy)
 
             elif enem_bottom > e_wall_bottom:
-                if enem_bottom < self.player_sprite.center_y - self.player_sprite.height / 2:
+                if enem_bottom < self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_b").append(enemy)
                 else:
                     self.scene.get_sprite_list("enemy_back").append(enemy)
@@ -145,23 +145,23 @@ class Game(arcade.Window):
     def on_key_press(self, key, modifiers):
         # If the player presses a key, update the speed
         if key == arcade.key.UP or key == arcade.key.W:
-            self.player_sprite.change_y = MOVEMENT_SPEED
+            self.player.change_y = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player_sprite.change_y = -MOVEMENT_SPEED
+            self.player.change_y = -MOVEMENT_SPEED
 
         elif key == arcade.key.LEFT or key == arcade.key.A:
-            self.player_sprite.change_x = -MOVEMENT_SPEED
+            self.player.change_x = -MOVEMENT_SPEED
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player_sprite.change_x = MOVEMENT_SPEED
+            self.player.change_x = MOVEMENT_SPEED
 
     def on_key_release(self, key, modifiers):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
-            self.player_sprite.change_y = 0
+            self.player.change_y = 0
 
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            self.player_sprite.change_x = 0
+            self.player.change_x = 0
 
 def start_game():
     # Close 'Main Menu' window
