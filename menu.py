@@ -1,3 +1,4 @@
+# Base code from: https://api.arcade.academy/en/latest/examples/view_screens_minimal.html
 import arcade
 
 class MenuView(arcade.View):
