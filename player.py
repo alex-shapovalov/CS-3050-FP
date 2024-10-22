@@ -1,4 +1,7 @@
 import arcade
+import enemy
+
+PLAYER_PADDING = 150
 
 class Player(arcade.Sprite):
     """ Player Class """
@@ -34,8 +37,14 @@ class Player(arcade.Sprite):
         if self.health <= 0:
             self.kill()
             
-    def player_give_damage(self, enemy):
-        None
+    def player_give_damage(self, enemy_list):
+        enemies_to_damage = []
+        for enemy in enemy_list:
+            if enemy.distance <= PLAYER_PADDING + 10:
+                enemies_to_damage.append(enemy)
+        
+        for enemy in enemies_to_damage:
+            enemy.enemy_receive_damage()
         # if self.attack_type == "melee":
             # Player is damaged by contact
             # self.player_sprite.receive_damage(self.damage)

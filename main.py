@@ -107,7 +107,7 @@ class Game(arcade.Window):
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
 
-            if self.player_sprite in self.scene.get_sprite_list("player_fore"):
+            if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
@@ -154,7 +154,10 @@ class Game(arcade.Window):
             self.player.change_x = -MOVEMENT_SPEED
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player.change_x = MOVEMENT_SPEED
+            self.player.change_x = MOVEMENT_SPEED    
+
+        elif key == arcade.key.H:
+            self.player.player_give_damage(enemy_list=self.enemy_list)
 
     def on_key_release(self, key, modifiers):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
@@ -162,6 +165,9 @@ class Game(arcade.Window):
 
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
             self.player.change_x = 0
+
+    # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+    #     self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
     # Close 'Main Menu' window

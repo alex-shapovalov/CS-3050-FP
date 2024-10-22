@@ -15,6 +15,7 @@ class Enemy(arcade.Sprite):
         self.health = health
         self.damage = damage
         self.attack_type = attack_type
+        self.distance = None
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -32,14 +33,14 @@ class Enemy(arcade.Sprite):
             self.center_y = random.randint(0, screen_height)
 
     def update(self):
-        distance = math.sqrt((self.player.center_x - self.center_x) ** 2 + (self.player.center_y - self.center_y) ** 2)
+        self.distance = math.sqrt((self.player.center_x - self.center_x) ** 2 + (self.player.center_y - self.center_y) ** 2)
 
         x_diff = self.player.center_x - self.center_x
         y_diff = self.player.center_y - self.center_y
         angle = math.atan2(y_diff, x_diff)
 
         # If enemy distance is further than player padding
-        if distance > PLAYER_PADDING:
+        if self.distance > PLAYER_PADDING:
             # Enemy moves towards the player
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
@@ -62,10 +63,10 @@ class Enemy(arcade.Sprite):
             if enemy == self:
                 continue
 
-            distance = math.sqrt((enemy.center_x - self.center_x) ** 2 + (enemy.center_y - self.center_y) ** 2)
+            self.distance = math.sqrt((enemy.center_x - self.center_x) ** 2 + (enemy.center_y - self.center_y) ** 2)
 
             # Keep enemies from overlapping
-            if distance < PLAYER_PADDING:
+            if self.distance < PLAYER_PADDING:
                 x_diff = enemy.center_x - self.center_x
                 y_diff = enemy.center_y - self.center_y
                 angle_away_from_enemy = math.atan2(y_diff, x_diff)
@@ -78,6 +79,7 @@ class Enemy(arcade.Sprite):
 
     def enemy_receive_damage(self):
         self.health -= self.player_damage
+        print(self.health)
         if self.health <= 0:
             self.kill()
             #TODO: Add some sort of death effect / blood
