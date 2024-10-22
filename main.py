@@ -12,7 +12,7 @@ SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
 
-MOVEMENT_SPEED = 2
+MOVEMENT_SPEED = 200
 ENEMY_SPAWN_INTERVAL = 5
 
 COLOR = arcade.color.AMAZON
@@ -25,7 +25,7 @@ class Game(arcade.Window):
 
         self.background = arcade.load_texture("grass.jfif")
 
-        self.physics_engine_wall = None
+        self.physics_engine = None
 
         # Keeps track of enemy spawns
         self.enemy_list = arcade.SpriteList()
@@ -36,7 +36,6 @@ class Game(arcade.Window):
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
-
 
     def setup(self):
         self.world.setup()
@@ -50,17 +49,17 @@ class Game(arcade.Window):
         self.scene.add_sprite_list("enemy_fore")
         self.scene.add_sprite_list("test_hbs")
 
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y = SCREEN_HEIGHT / 2 + 200, hit_box_algorithm=None)
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250,
+                             hit_box_algorithm=None)
         self.wall_list.append(wall)
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        # self.player_list.append(self.player_sprite)
-
-        self.physics_engine_wall = arcade.PhysicsEngineSimple(self.player_sprite, [self.wall_list,self.enemy_list])
-
+        self.physics_engine = arcade.PymunkPhysicsEngine()
+        self.physics_engine.add_sprite(self.player_sprite, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine.add_sprite_list(self.wall_list, body_type=1)
 
     # TODO: Spawn enemies off screen
 
@@ -91,11 +90,10 @@ class Game(arcade.Window):
         self.scene.draw()
         self.player_sprite.draw()
 
-
     def on_update(self, delta_time):
         """ Movement and game logic """
 
-        self.physics_engine_wall.update()
+        self.physics_engine.step()
 
         # Move the player
 
@@ -111,6 +109,7 @@ class Game(arcade.Window):
             enemy = Enemy(self.player_sprite, self.enemy_list)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
+            self.physics_engine.add_sprite(enemy, mass = 2, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -139,10 +138,12 @@ class Game(arcade.Window):
         # Update enemies z-index:
         for enem in self.enemy_list:
             # get closest wall to enemy
+            self.physics_engine.set_velocity(enem, (enem.change_x, enem.change_y))
+
             e_wall = arcade.get_closest_sprite(enem, self.wall_list)
 
             # find bottom point of sprites for later
-            enem_bottom = enem.center_y - enem.height/2
+            enem_bottom = enem.center_y - enem.height / 2
             e_wall_bottom = e_wall[0].center_y - e_wall[0].height / 2
 
             # Remove enem from scene sprite lists to avoid conflicts when appending later
@@ -172,25 +173,30 @@ class Game(arcade.Window):
             if enem not in self.scene.get_sprite_list("test_hbs"):
                 self.scene.add_sprite("test_hbs", enem)
 
-
     def on_key_press(self, key, modifiers):
 
         """Called whenever a key is pressed. """
 
         # If the player presses a key, update the speed
 
+        vec_vel = [0, 0]
+
         if key == arcade.key.UP or key == arcade.key.W:
-            self.player_sprite.change_y = MOVEMENT_SPEED
+            # self.player_sprite.change_y = MOVEMENT_SPEED
+            vec_vel[1] = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player_sprite.change_y = -MOVEMENT_SPEED
+            # self.player_sprite.change_y = -MOVEMENT_SPEED
+            vec_vel[1] = -MOVEMENT_SPEED
 
         elif key == arcade.key.LEFT or key == arcade.key.A:
-            self.player_sprite.change_x = -MOVEMENT_SPEED
-
+            # self.player_sprite.change_x = -MOVEMENT_SPEED
+            vec_vel[0] = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player_sprite.change_x = MOVEMENT_SPEED
+            # self.player_sprite.change_x = MOVEMENT_SPEED
+            vec_vel[0] = MOVEMENT_SPEED
 
+        self.physics_engine.set_velocity(self.player_sprite, vec_vel)
     def on_key_release(self, key, modifiers):
 
         """Called when the user releases a key. """
@@ -203,13 +209,15 @@ class Game(arcade.Window):
 
         # handle this.
 
-        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
+        # if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
+        #     self.player_sprite.change_y = 0
+        #
+        # elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
+        #
+        #     self.player_sprite.change_x = 0
 
-            self.player_sprite.change_y = 0
-
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-
-            self.player_sprite.change_x = 0
+        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
+            self.physics_engine.set_velocity(self.player_sprite, (0,0))
 
 
 def main():

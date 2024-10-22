@@ -6,7 +6,7 @@ SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 
 SPRITE_SCALING = 0.5
-ENEMY_SPEED = 4
+ENEMY_SPEED = 200
 PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
 
@@ -87,7 +87,7 @@ class Enemy(arcade.Sprite):
         self.tex.center_x = self.center_x
         self.tex.center_y = self.center_y + self.tex.height/2
 
-        super().update()
+        # super().update()
 
     def receive_damage(self, amount):
         self.health -= amount

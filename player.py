@@ -33,8 +33,11 @@ class Player(arcade.Sprite):
     def update(self):
         """ Move the player """
 
-        self.center_x += self.change_x
-        self.center_y += self.change_y
-
+        # self.center_x += self.change_x
+        # self.center_y += self.change_y
+        #
         self.tex.center_x = self.center_x
         self.tex.center_y = self.center_y + self.tex.height/2
+
+        self.tex.radians = self.radians
+
