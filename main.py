@@ -103,7 +103,6 @@ class Game(arcade.Window):
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
             self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
-            # self.physics_engine.add_collision_handler("enemy", "wall", post_handler=self.wall_collision_handler)
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -187,18 +186,14 @@ class Game(arcade.Window):
         vec_vel = [-1, -1]
 
         if key == arcade.key.UP or key == arcade.key.W:
-            # self.player_sprite.change_y = MOVEMENT_SPEED
             vec_vel[1] = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            # self.player_sprite.change_y = -MOVEMENT_SPEED
             vec_vel[1] = -MOVEMENT_SPEED
 
         if key == arcade.key.LEFT or key == arcade.key.A:
-            # self.player_sprite.change_x = -MOVEMENT_SPEED
             vec_vel[0] = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            # self.player_sprite.change_x = MOVEMENT_SPEED
             vec_vel[0] = MOVEMENT_SPEED
 
         if vec_vel[0] != -1 or vec_vel[1] != -1:
@@ -220,30 +215,6 @@ class Game(arcade.Window):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
             updated_vel = self.player_sprite.update_velocity([0,0])
             self.physics_engine.set_velocity(self.player_sprite, updated_vel)
-
-    # def wall_collision_handler(self, enemy_sprite, wall_sprite, arbiter, space, data):
-    #
-    #     enemy_sprite.change_x = 0
-    #     enemy_sprite.change_y = 0
-    #     enemy_sprite.collide = True
-    #     self.physics_engine.set_velocity(enemy_sprite, (0, 0))
-    #     return True
-    #     if enemy_sprite.center_x - enemy_sprite.width/2 < wall_sprite.center_x + wall_sprite.width/2:
-    #         enemy_sprite.change_x = 0
-    #         enemy_sprite.center_x = wall_sprite.center_x + wall_sprite.width/2
-    #
-    #     elif enemy_sprite.center_x + enemy_sprite.width/2 > wall_sprite.center_x - wall_sprite.width/2:
-    #         enemy_sprite.change_x = 0
-    #         enemy_sprite.center_x = wall_sprite.center_x - wall_sprite.width / 2
-    #
-    #     if enemy_sprite.center_y - enemy_sprite.height / 2 < wall_sprite.center_y + wall_sprite.height / 2:
-    #         enemy_sprite.change_y = 0
-    #         enemy_sprite.center_y = wall_sprite.center_y + wall_sprite.height / 2
-    #
-    #     elif enemy_sprite.center_y + enemy_sprite.height / 2 > wall_sprite.center_y - wall_sprite.height / 2:
-    #         enemy_sprite.change_y = 0
-    #         enemy_sprite.center_y = wall_sprite.center_y - wall_sprite.height / 2
-
 
 
 
