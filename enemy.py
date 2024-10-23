@@ -9,15 +9,18 @@ SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
 PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
+COL_BUFFER = 10
 
 class Enemy(arcade.Sprite):
-    def __init__(self, player_sprite, enemy_list, health = 100, damage = 10, attack_type = "melee", image="char_hit_box.png", scaling=SPRITE_SCALING):
+    def __init__(self, player_sprite, enemy_list, wall_list, health = 100, damage = 10, attack_type = "melee", image="char_hit_box.png", scaling=SPRITE_SCALING):
         super().__init__(image, scaling)
         self.player_sprite = player_sprite
         self.enemy_list = enemy_list
+        self.wall_list = wall_list
         self.health = health
         self.damage = damage
         self.attack_type = attack_type
+        self.collide = False
 
 
         # Spawn somewhere random
@@ -48,6 +51,9 @@ class Enemy(arcade.Sprite):
         y_diff = self.player_sprite.center_y - self.center_y
         angle = math.atan2(y_diff, x_diff)
 
+        self.change_x = 0
+        self.change_y = 0
+
         # If enemy distance is further than player padding
         if distance > PLAYER_PADDING:
             # Enemy moves towards the player
@@ -63,9 +69,6 @@ class Enemy(arcade.Sprite):
             self.change_x = math.cos(angle) * -PUSHBACK_SPEED
             self.change_y = math.sin(angle) * -PUSHBACK_SPEED
 
-        else:
-            self.change_x = 0
-            self.change_y = 0
 
         # Checking for enemy overlaps
         for enemy in self.enemy_list:
@@ -84,8 +87,20 @@ class Enemy(arcade.Sprite):
                 self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
                 self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
 
+        # Ensures that if the enemies collide with a wall then they would continually try to run into it,
+        # causing the enemy to go into the wall hitbbox
+        wall = self.collides_with_list(self.wall_list)
+        if wall != []:
+            # Checks every wall we are colliding with to make sure we cant run further in that direction
+            for w in wall:
+                if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER and ((w.top >= self.bottom and self.change_y < 0) or (w.bottom <= self.top and self.change_y > 0)):
+                    self.change_y = 0
+                if w.bottom + COL_BUFFER < self.center_y < w.top - COL_BUFFER and ((w.right >= self.left and self.change_x < 0) or (w.left <= self.right and self.change_x > 0)):
+                    self.change_x = 0
+
         self.tex.center_x = self.center_x
         self.tex.center_y = self.center_y + self.tex.height/2
+        # self.tex.radius = self.radians
 
         # super().update()
 

@@ -1,4 +1,6 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
+import math
+
 import arcade
 import pymunk
 import pyglet
@@ -57,9 +59,9 @@ class Game(arcade.Window):
         # Set up the player
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0,0), damping=0.9)
+        self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player_sprite, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
-        self.physics_engine.add_sprite_list(self.wall_list, body_type=1)
+        self.physics_engine.add_sprite_list(self.wall_list, body_type=1, collision_type="wall")
 
     # TODO: Spawn enemies off screen
 
@@ -97,10 +99,11 @@ class Game(arcade.Window):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player_sprite, self.enemy_list)
+            enemy = Enemy(self.player_sprite, self.enemy_list, self.wall_list)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
-            self.physics_engine.add_sprite(enemy, mass = 1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+            self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+            # self.physics_engine.add_collision_handler("enemy", "wall", post_handler=self.wall_collision_handler)
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -214,16 +217,34 @@ class Game(arcade.Window):
 
         # handle this.
 
-        # if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
-        #     self.player_sprite.change_y = 0
-        #
-        # elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-        #
-        #     self.player_sprite.change_x = 0
-
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
             updated_vel = self.player_sprite.update_velocity([0,0])
             self.physics_engine.set_velocity(self.player_sprite, updated_vel)
+
+    # def wall_collision_handler(self, enemy_sprite, wall_sprite, arbiter, space, data):
+    #
+    #     enemy_sprite.change_x = 0
+    #     enemy_sprite.change_y = 0
+    #     enemy_sprite.collide = True
+    #     self.physics_engine.set_velocity(enemy_sprite, (0, 0))
+    #     return True
+    #     if enemy_sprite.center_x - enemy_sprite.width/2 < wall_sprite.center_x + wall_sprite.width/2:
+    #         enemy_sprite.change_x = 0
+    #         enemy_sprite.center_x = wall_sprite.center_x + wall_sprite.width/2
+    #
+    #     elif enemy_sprite.center_x + enemy_sprite.width/2 > wall_sprite.center_x - wall_sprite.width/2:
+    #         enemy_sprite.change_x = 0
+    #         enemy_sprite.center_x = wall_sprite.center_x - wall_sprite.width / 2
+    #
+    #     if enemy_sprite.center_y - enemy_sprite.height / 2 < wall_sprite.center_y + wall_sprite.height / 2:
+    #         enemy_sprite.change_y = 0
+    #         enemy_sprite.center_y = wall_sprite.center_y + wall_sprite.height / 2
+    #
+    #     elif enemy_sprite.center_y + enemy_sprite.height / 2 > wall_sprite.center_y - wall_sprite.height / 2:
+    #         enemy_sprite.change_y = 0
+    #         enemy_sprite.center_y = wall_sprite.center_y - wall_sprite.height / 2
+
+
 
 
 def main():
