@@ -156,8 +156,8 @@ class Game(arcade.Window):
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.player.change_x = MOVEMENT_SPEED    
 
-        elif key == arcade.key.H:
-            self.player.player_give_damage(enemy_list=self.enemy_list)
+        # elif key == arcade.key.H:
+        #     self.player.player_give_damage(enemy_list=self.enemy_list)
 
     def on_key_release(self, key, modifiers):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
@@ -166,12 +166,12 @@ class Game(arcade.Window):
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
             self.player.change_x = 0
 
-    # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-    #     self.player.player_give_damage(enemy_list=self.enemy_list)
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+        self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
     # Close 'Main Menu' window
-    arcade.close_window()
+    # arcade.close_window()
 
     # Create 'Game' window
     window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
@@ -190,7 +190,6 @@ def exit_game():
 def go_back_to_menu():
     # Go back to main menu
     menu_view = MenuView(start_game, show_guide, exit_game)
-    arcade.get_window().show_view(menu_view)
 
 def main():
     # Create 'Main Menu' window

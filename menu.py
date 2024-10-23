@@ -1,5 +1,6 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/view_screens_minimal.html
 import arcade
+import time
 
 class MenuView(arcade.View):
     def __init__(self, start_game, show_guide, exit_game):
@@ -48,6 +49,7 @@ class MenuView(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         # Play button click
         if self.window.width / 2 - self.button_width / 2 < x < self.window.width / 2 + self.button_width / 2 and self.play_button_y - self.button_height / 2 < y < self.play_button_y + self.button_height / 2:
+            time.sleep(1)
             self.start_game()
 
         # Guide button click
