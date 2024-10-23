@@ -1,4 +1,5 @@
 import arcade
+import pymunk
 
 class Player(arcade.Sprite):
     """ Player Class """
@@ -19,11 +20,13 @@ class Player(arcade.Sprite):
         self.damage: int = health
         self.center_x = screen_width / 2
         self.center_y = screen_height / 2
+        self.visible = False
 
         self.tex = arcade.Sprite("player.png", scale=sprite_scaling)
 
         self.width = self.tex.width
         self.height = self.tex.height/3
+        self.velocity = [0,0]
 
 
         self.screen_width: int = screen_width
@@ -39,5 +42,11 @@ class Player(arcade.Sprite):
         self.tex.center_x = self.center_x
         self.tex.center_y = self.center_y + self.tex.height/2
 
-        self.tex.radians = self.radians
 
+    def update_velocity(self, vel):
+        if vel[0] != -1:
+            self.velocity[0] = vel[0]
+        if vel[1] != -1:
+            self.velocity[1] = vel[1]
+
+        return self.velocity

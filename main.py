@@ -12,7 +12,7 @@ SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
 
-MOVEMENT_SPEED = 200
+MOVEMENT_SPEED = 300
 ENEMY_SPAWN_INTERVAL = 5
 
 COLOR = arcade.color.AMAZON
@@ -57,8 +57,8 @@ class Game(arcade.Window):
         # Set up the player
         self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        self.physics_engine = arcade.PymunkPhysicsEngine()
-        self.physics_engine.add_sprite(self.player_sprite, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0,0), damping=0.9)
+        self.physics_engine.add_sprite(self.player_sprite, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
         self.physics_engine.add_sprite_list(self.wall_list, body_type=1)
 
     # TODO: Spawn enemies off screen
@@ -93,15 +93,6 @@ class Game(arcade.Window):
     def on_update(self, delta_time):
         """ Movement and game logic """
 
-        self.physics_engine.step()
-
-        # Move the player
-
-        self.player_sprite.update()
-        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
-                                   self.player_sprite.center_y - SCREEN_HEIGHT / 2)
-        self.camera.move(cam_loc)
-
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
@@ -109,7 +100,7 @@ class Game(arcade.Window):
             enemy = Enemy(self.player_sprite, self.enemy_list)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
-            self.physics_engine.add_sprite(enemy, mass = 2, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+            self.physics_engine.add_sprite(enemy, mass = 1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -173,13 +164,24 @@ class Game(arcade.Window):
             if enem not in self.scene.get_sprite_list("test_hbs"):
                 self.scene.add_sprite("test_hbs", enem)
 
+        # Move the player
+
+        self.player_sprite.update()
+
+        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
+                                   self.player_sprite.center_y - SCREEN_HEIGHT / 2)
+        self.camera.move(cam_loc)
+
+        self.physics_engine.step()
+
+
     def on_key_press(self, key, modifiers):
 
         """Called whenever a key is pressed. """
 
         # If the player presses a key, update the speed
 
-        vec_vel = [0, 0]
+        vec_vel = [-1, -1]
 
         if key == arcade.key.UP or key == arcade.key.W:
             # self.player_sprite.change_y = MOVEMENT_SPEED
@@ -189,14 +191,17 @@ class Game(arcade.Window):
             # self.player_sprite.change_y = -MOVEMENT_SPEED
             vec_vel[1] = -MOVEMENT_SPEED
 
-        elif key == arcade.key.LEFT or key == arcade.key.A:
+        if key == arcade.key.LEFT or key == arcade.key.A:
             # self.player_sprite.change_x = -MOVEMENT_SPEED
             vec_vel[0] = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             # self.player_sprite.change_x = MOVEMENT_SPEED
             vec_vel[0] = MOVEMENT_SPEED
 
-        self.physics_engine.set_velocity(self.player_sprite, vec_vel)
+        if vec_vel[0] != -1 or vec_vel[1] != -1:
+            updated_vel = self.player_sprite.update_velocity(vec_vel)
+            self.physics_engine.set_velocity(self.player_sprite, updated_vel)
+
     def on_key_release(self, key, modifiers):
 
         """Called when the user releases a key. """
@@ -217,7 +222,8 @@ class Game(arcade.Window):
         #     self.player_sprite.change_x = 0
 
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            self.physics_engine.set_velocity(self.player_sprite, (0,0))
+            updated_vel = self.player_sprite.update_velocity([0,0])
+            self.physics_engine.set_velocity(self.player_sprite, updated_vel)
 
 
 def main():
