@@ -203,6 +203,7 @@ def exit_game():
 def go_back_to_menu():
     # Go back to main menu
     menu_view = MenuView(start_game, show_guide, exit_game)
+    arcade.get_window().show_view(menu_view)
 
 def main():
     # Create 'Main Menu' window
