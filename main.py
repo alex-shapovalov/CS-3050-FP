@@ -12,6 +12,7 @@ SCREEN_TITLE = "Game"
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
+PLAYER_HEALTH = 100
 PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
@@ -52,7 +53,7 @@ class Game(arcade.Window):
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
-        self.player = Player(100, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
@@ -70,7 +71,19 @@ class Game(arcade.Window):
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
+        self.player.draw()
         self.scene.draw()
+
+        if self.player.damaged:
+            self.player.texture = self.player.damaged_texture
+            if self.player.health <= 0:
+                # Close 'Game' window
+                arcade.close_window()
+
+                #TODO: Add code for death screen / main menu
+
+        else:
+            self.player.texture = self.player.original_texture
 
     def on_update(self, delta_time):
         # Move the player and keep the camera centered
@@ -154,7 +167,7 @@ class Game(arcade.Window):
             self.player.change_x = -MOVEMENT_SPEED
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player.change_x = MOVEMENT_SPEED    
+            self.player.change_x = MOVEMENT_SPEED
 
         # elif key == arcade.key.H:
         #     self.player.player_give_damage(enemy_list=self.enemy_list)
@@ -171,7 +184,7 @@ class Game(arcade.Window):
 
 def start_game():
     # Close 'Main Menu' window
-    # arcade.close_window()
+    arcade.close_window()
 
     # Create 'Game' window
     window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)

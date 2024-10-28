@@ -1,6 +1,7 @@
 import arcade
 import random
 import math
+import time
 
 ENEMY_SPEED = 4
 PUSHBACK_SPEED = ENEMY_SPEED / 2
@@ -16,6 +17,7 @@ class Enemy(arcade.Sprite):
         self.damage = damage
         self.attack_type = attack_type
         self.distance = None
+        self.last_damage_time = 0
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -45,14 +47,18 @@ class Enemy(arcade.Sprite):
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
 
-        # If player is walking towards an enemy
-        elif ((self.player.change_x > 0 and x_diff < 0) or
-              (self.player.change_x < 0 and x_diff > 0) or
-              (self.player.change_y > 0 and y_diff < 0) or
-              (self.player.change_y < 0 and y_diff > 0)):
-            # Push the enemy back if the player is moving towards them
-            self.change_x = math.cos(angle) * -PUSHBACK_SPEED
-            self.change_y = math.sin(angle) * -PUSHBACK_SPEED
+        elif self.distance < PLAYER_PADDING:
+            # Invincibility frames
+            self.player.player_receive_damage(self.damage)
+
+            # If player is walking towards an enemy
+            if ((self.player.change_x > 0 and x_diff < 0) or
+                    (self.player.change_x < 0 and x_diff > 0) or
+                    (self.player.change_y > 0 and y_diff < 0) or
+                    (self.player.change_y < 0 and y_diff > 0)):
+                # Push the enemy back if the player is moving towards them
+                self.change_x = math.cos(angle) * -PUSHBACK_SPEED
+                self.change_y = math.sin(angle) * -PUSHBACK_SPEED
 
         else:
             self.change_x = 0
@@ -84,10 +90,10 @@ class Enemy(arcade.Sprite):
             #TODO: Add some sort of death effect / blood
 
     # TODO: Player takes self.damage damage, create player receive_damage class
-    def enemy_give_damage(self, damage):
+    def enemy_give_damage(self):
         if self.attack_type == "melee":
             # Player is damaged by contact
             self.player.player_receive_damage(self.damage)
         elif self.attack_type == "ranged":
-            None
+            x = 0
             # Player is damaged if projectile hits him
