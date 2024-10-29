@@ -15,13 +15,14 @@ import arcade
 import datetime
 from perlin_noise import PerlinNoise
 from room import Room
-from main import FLOOR_TILE_SIZE
 
 # Constants
 
+# Size of each floor tile in pyarcade units
+FLOOR_TILE_SIZE = 80
 # World size in rooms.
 # This must be odd, or there are no courtyards. I don't know why.
-WORLD_SIZE = 15
+WORLD_SIZE = 11
 # Room size in pyarcade units
 ROOM_SIZE = 9*FLOOR_TILE_SIZE
 # Seed for world generation
