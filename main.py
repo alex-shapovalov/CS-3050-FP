@@ -17,7 +17,6 @@ PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
 
-
 class Game(arcade.Window):
     def __init__(self, width, height, title):
         # Call the parent class initializer
@@ -29,7 +28,6 @@ class Game(arcade.Window):
         self.enemy_list = arcade.SpriteList()
         self.time_since_last_spawn = 0
         self.spawn_time = ENEMY_SPAWN_INTERVAL
-
         # Keeps track of world
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -81,9 +79,6 @@ class Game(arcade.Window):
                 arcade.close_window()
 
                 #TODO: Add code for death screen / main menu
-
-        else:
-            self.player.texture = self.player.original_texture
 
     def on_update(self, delta_time):
         # Move the player and keep the camera centered
@@ -180,6 +175,7 @@ class Game(arcade.Window):
             self.player.change_x = 0
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+        self.player.is_attacking = True
         self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
