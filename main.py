@@ -11,6 +11,8 @@ SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Move Sprite with Keyboard Example"
 
+FLOOR_TILE_SIZE = 80
+
 MOVEMENT_SPEED = 5
 
 COLOR = arcade.color.AMAZON
@@ -65,7 +67,9 @@ class Game(arcade.Window):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         # Draw some walls. Remove this later.
-
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, SCREEN_WIDTH / 2,
+                                            FLOOR_TILE_SIZE, FLOOR_TILE_SIZE,
+                                            arcade.load_texture("floor.png"))
 
         # Draw all the sprites.
         self.player_list.draw()
