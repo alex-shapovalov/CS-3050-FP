@@ -14,17 +14,20 @@ SCREEN_TITLE = "Game"
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
-PLAYER_HEALTH = 100
+PLAYER_HEALTH = 25
 PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
 
-class Game(arcade.Window):
-    def __init__(self, width, height, title):
+class Game(arcade.View):
+    def __init__(self):
         # Call the parent class initializer
-        super().__init__(width, height, title)
+        super().__init__()
 
         self.background = arcade.load_texture("grass.jfif")
+        self.width = SCREEN_WIDTH
+        self.height = SCREEN_HEIGHT
+        self.title = SCREEN_TITLE
 
         # Keeps track of enemy spawns
         self.enemy_list = arcade.SpriteList()
@@ -35,6 +38,14 @@ class Game(arcade.Window):
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
+
+    def cleanup(self):
+        self.enemy_list = None
+        self.player = None
+        self.wall_list = None
+        self.scene = None
+        self.world = None
+        self.camera = None
 
     def setup(self):
         # Setting up the game itself
@@ -78,8 +89,9 @@ class Game(arcade.Window):
             self.player.texture = self.player.damaged_texture
             if self.player.health <= 0:
                 # Close 'Game' window
-                python = sys.executable
-                os.execl(python, python, *sys.argv)
+                menu = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
+                arcade.get_window().show_view(menu)
+
 
     def on_update(self, delta_time):
         # Move the player and keep the camera centered
@@ -181,12 +193,11 @@ class Game(arcade.Window):
 
 def start_game():
     # Close 'Main Menu' window
-    arcade.close_window()
 
     # Create 'Game' window
-    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    window.setup()
-    arcade.run()
+    game_view = Game()
+    game_view.setup()
+    arcade.get_window().show_view(game_view)
 
 def show_guide():
     # Show the guide view with and go back button
@@ -199,7 +210,7 @@ def exit_game():
 
 def go_back_to_menu():
     # Go back to main menu
-    menu_view = MenuView(start_game, show_guide, exit_game)
+    menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.get_window().show_view(menu_view)
 
 def main():
@@ -207,7 +218,7 @@ def main():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Main Menu")
 
     # Call MenuView from menu.py with a callback method to start the game when user presses play
-    menu_view = MenuView(start_game, show_guide, exit_game)
+    menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     window.show_view(menu_view)
     arcade.run()
 

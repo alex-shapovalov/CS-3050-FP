@@ -3,11 +3,14 @@ import arcade
 import time
 
 class MenuView(arcade.View):
-    def __init__(self, start_game, show_guide, exit_game):
+    def __init__(self, start_game, show_guide, exit_game, width, height):
         super().__init__()
         self.start_game = start_game
         self.show_guide = show_guide
         self.exit_game = exit_game
+
+        self.width = width
+        self.height = height
 
         # Button positions and dimensions
         self.button_width = 200
@@ -18,6 +21,7 @@ class MenuView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.WHITE)
+        arcade.set_viewport(0, self.width, 0, self.height)
 
     def draw_buttons(self):
         # Play button
