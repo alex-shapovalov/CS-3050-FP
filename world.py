@@ -20,13 +20,17 @@ from room import Room
 
 # Size of each floor tile in pyarcade units
 FLOOR_TILE_SIZE = 80
+
 # World size in rooms.
-# This must be odd, or there are no courtyards. I don't know why.
+# This must be odd, or there are no courtyards. I think this is related to the perlin noise implementation.
 WORLD_SIZE = 11
+
 # Room size in pyarcade units
 ROOM_SIZE = 9*FLOOR_TILE_SIZE
+
 # Seed for world generation
 SEED = int(datetime.datetime.now().timestamp())
+
 # Every room with a noise value greater than INDOOR_CUTOFF will be an indoor room.
 # Must be between 0 and 1.
 # Recommend between 0.3 and 0.7.
