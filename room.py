@@ -14,4 +14,3 @@ class Room():
         self.y = y
         self.size = size
         self.indoor = indoor
-
