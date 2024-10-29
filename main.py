@@ -1,6 +1,8 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
 import pyglet
+import os
+import sys
 from world import World
 from player import Player
 from enemy import Enemy
@@ -76,9 +78,8 @@ class Game(arcade.Window):
             self.player.texture = self.player.damaged_texture
             if self.player.health <= 0:
                 # Close 'Game' window
-                arcade.close_window()
-
-                #TODO: Add code for death screen / main menu
+                python = sys.executable
+                os.execl(python, python, *sys.argv)
 
     def on_update(self, delta_time):
         # Move the player and keep the camera centered
