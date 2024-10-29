@@ -70,6 +70,12 @@ class Game(arcade.Window):
         arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, SCREEN_WIDTH / 2,
                                             FLOOR_TILE_SIZE, FLOOR_TILE_SIZE,
                                             arcade.load_texture("floor.png"))
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2 + FLOOR_TILE_SIZE, SCREEN_WIDTH / 2,
+                                            FLOOR_TILE_SIZE/2, FLOOR_TILE_SIZE*3,
+                                            arcade.load_texture("wall_verti.png"))
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2 + 2*FLOOR_TILE_SIZE, SCREEN_WIDTH / 2,
+                                            FLOOR_TILE_SIZE, FLOOR_TILE_SIZE*2.5,
+                                            arcade.load_texture("wall_hori.png"))
 
         # Draw all the sprites.
         self.player_list.draw()
