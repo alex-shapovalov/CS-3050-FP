@@ -20,7 +20,7 @@ class Game(arcade.Window):
      # Call the parent class initializer
         super().__init__(width, height, title)
 
-        self.background = arcade.load_texture("grass.jfif")
+        self.background = arcade.load_texture("floor.png")
 
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -48,12 +48,12 @@ class Game(arcade.Window):
         # This command has to happen before we start drawing
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0,
-                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
-                                            self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
-                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
-                                            self.background)
+#        arcade.draw_lrwh_rectangle_textured(0, 0,
+#                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+#                                            self.background)
+#        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
+#                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+#                                            self.background)
 
         # Draw the rooms.
         # For now, indoor rooms are just grey rectangles.
@@ -63,6 +63,9 @@ class Game(arcade.Window):
                 room = self.world.rooms[i][j];
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+
+        # Draw some walls. Remove this later.
+
 
         # Draw all the sprites.
         self.player_list.draw()
