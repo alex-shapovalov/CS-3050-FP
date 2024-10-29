@@ -14,7 +14,7 @@ SCREEN_TITLE = "Game"
 MOVEMENT_SPEED = 5
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
-PLAYER_HEALTH = 25
+PLAYER_HEALTH = 100
 PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
@@ -86,7 +86,6 @@ class Game(arcade.View):
         self.scene.draw()
 
         if self.player.damaged:
-            self.player.texture = self.player.damaged_texture
             if self.player.health <= 0:
                 # Close 'Game' window
                 menu = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)

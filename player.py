@@ -5,6 +5,9 @@ import enemy
 PLAYER_PADDING = 150
 UPDATES_PER_FRAME = 5
 
+FACING_RIGHT = 0
+FACING_LEFT = 1
+
 def load_texture_pair(filename):
         """
         Load a texture pair, with the second being a mirror image.
@@ -36,10 +39,12 @@ class Player(arcade.Sprite):
         self.damaged = False
         self.damaged_time = 0
         self.original_texture = arcade.load_texture("player.png")
-        self.damaged_texture = arcade.load_texture("player_damaged.png")
+        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
         
         self.is_attacking = False
-        self.delta_time = 0
+        self.last_attack_time = 0
+
+        self.facing = FACING_RIGHT
 
         self.idle_texture_pair = load_texture_pair(f"player.png")
 
@@ -51,6 +56,7 @@ class Player(arcade.Sprite):
             filename = f'player_anim_frames/player-f{i+1}.png'
             texture = load_texture_pair(filename)
             self.attack_animation.append(texture)
+        
 
 
     def update(self):
@@ -61,36 +67,29 @@ class Player(arcade.Sprite):
             self.damaged = False
 
         if self.change_x == 0 and self.change_y == 0:
-            self.texture = self.idle_texture_pair[0]
+            self.texture = self.idle_texture_pair[self.facing]
         else:
-            self.texture = self.walking_texture_pair[0]
+            if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_LEFT
+            elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_RIGHT
+            elif self.change_x < 0:
+                self.facing = FACING_LEFT
+            elif self.change_x > 0:
+                self.facing = FACING_RIGHT
+            self.texture = self.walking_texture_pair[self.facing]
 
         if self.is_attacking:
-            self.curr_texture += 0.5
+            self.curr_texture += 0.35
             if self.curr_texture >= len(self.attack_animation):
                 self.curr_texture = 0
                 self.is_attacking = False
-            self.texture = self.attack_animation[int(self.curr_texture)][0] # change direction 
-            
-        
-        
-    # def update_animation(self, delta_time: float = 1 / 60):
+            self.texture = self.attack_animation[int(self.curr_texture)][self.facing] 
 
-    #     # attack animation
-    #     if self.is_attacking:
-    #         self.curr_texture += 0.25
-    #         print(int(self.curr_texture))
-    #         if self.curr_texture == 3:
-    #             self.curr_texture = 0
-                
-    #         self.texture = self.attack_animation[int(self.curr_texture)][0] # change direction 
-            
-    #     self.is_attacking = False
-        
-        
     def player_receive_damage(self, amount):
         # Invincibility frames
         if time.time() - self.damaged_time >= 1.5:
+            self.texture = self.damaged_texture[self.facing]
             self.health -= amount
             self.damaged = True
             self.damaged_time = time.time()
