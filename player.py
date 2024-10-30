@@ -1,5 +1,6 @@
 import arcade
 import pymunk
+import math
 
 class Player(arcade.Sprite):
     """ Player Class """
@@ -9,9 +10,8 @@ class Player(arcade.Sprite):
 
         # initialize player
         super().__init__(
-            filename="char_hit_box.png",
+            filename="player.png",
             scale=sprite_scaling,
-            hit_box_algorithm='Simple'
         )
 
 
@@ -20,27 +20,32 @@ class Player(arcade.Sprite):
         self.damage: int = health
         self.center_x = screen_width / 2
         self.center_y = screen_height / 2
-        self.visible = False
 
-        self.tex = arcade.Sprite("player.png", scale=sprite_scaling)
+        hitbox = []
+        self.hitbox_width = self.width
+        self.hitbox_height = self.height/3
+        num_points = 20  # Adjust for more precision
+        for i in range(num_points):
+            angle = math.radians(360 / num_points * i)
+            x = self.hitbox_width * math.cos(angle)
+            y = self.hitbox_height * math.sin(angle) - self.height
+            hitbox.append((x, y))
+        self.set_hit_box(hitbox)
 
-        self.width = self.tex.width
-        self.height = self.tex.height/3
         self.velocity = [0,0]
-
 
         self.screen_width: int = screen_width
         self.screen_height: int = screen_height
 
 
-    def update(self):
-        """ Move the player """
+    # def update(self):
+    #     """ Move the player """
 
         # self.center_x += self.change_x
         # self.center_y += self.change_y
         #
-        self.tex.center_x = self.center_x
-        self.tex.center_y = self.center_y + self.tex.height/2
+        # self.tex.center_x = self.center_x
+        # self.tex.center_y = self.center_y + self.tex.height/2
 
 
     def update_velocity(self, vel):

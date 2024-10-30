@@ -9,10 +9,10 @@ SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
 PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
-COL_BUFFER = 10
+COL_BUFFER = 5
 
 class Enemy(arcade.Sprite):
-    def __init__(self, player_sprite, enemy_list, wall_list, health = 100, damage = 10, attack_type = "melee", image="char_hit_box.png", scaling=SPRITE_SCALING):
+    def __init__(self, player_sprite, enemy_list, wall_list, health = 100, damage = 10, attack_type = "melee", image="enemy.png", scaling=SPRITE_SCALING):
         super().__init__(image, scaling)
         self.player_sprite = player_sprite
         self.enemy_list = enemy_list
@@ -38,10 +38,21 @@ class Enemy(arcade.Sprite):
             self.center_x = SCREEN_WIDTH + 50
             self.center_y = random.randint(0, SCREEN_HEIGHT)
 
-        self.tex = arcade.Sprite("enemy.png", scale=SPRITE_SCALING, center_x=self.center_x, center_y=self.center_y)
+        # self.tex = arcade.Sprite("enemy.png", scale=SPRITE_SCALING, center_x=self.center_x, center_y=self.center_y)
 
-        self.width = self.tex.width
-        self.height = self.tex.height/3
+        # self.width = self.tex.width
+        # self.height = self.tex.height/3
+
+        hitbox = []
+        self.hitbox_width = self.width
+        self.hitbox_height = self.height / 3
+        num_points = 20  # Adjust for more precision
+        for i in range(num_points):
+            angle = math.radians(360 / num_points * i)
+            x = self.hitbox_width * math.cos(angle)
+            y = self.hitbox_height * math.sin(angle) - self.height
+            hitbox.append((x, y))
+        self.set_hit_box(hitbox)
 
 
     def update(self):
@@ -95,12 +106,8 @@ class Enemy(arcade.Sprite):
             for w in wall:
                 if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER and ((w.top >= self.bottom and self.change_y < 0) or (w.bottom <= self.top and self.change_y > 0)):
                     self.change_y = 0
-                if w.bottom + COL_BUFFER < self.center_y < w.top - COL_BUFFER and ((w.right >= self.left and self.change_x < 0) or (w.left <= self.right and self.change_x > 0)):
+                if w.bottom + COL_BUFFER < self.center_y-self.height/2 < w.top - COL_BUFFER and ((w.right >= self.left and self.change_x < 0) or (w.left <= self.right and self.change_x > 0)):
                     self.change_x = 0
-
-        self.tex.center_x = self.center_x
-        self.tex.center_y = self.center_y + self.tex.height/2
-        # self.tex.radius = self.radians
 
         # super().update()
 
