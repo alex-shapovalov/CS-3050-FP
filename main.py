@@ -91,14 +91,6 @@ class Game(arcade.Window):
                     arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         self.scene.draw()
-        # self.player_sprite.draw()
-        # self.player_sprite.draw_hit_box((1,0,0))
-
-        # for i in self.enemy_list:
-        #     i.draw_hit_box((1,0,0))
-        #
-        # for i in self.wall_list:
-        #     i.draw_hit_box((1,0,0))
 
     def on_update(self, delta_time):
         """ Movement and game logic """
@@ -175,8 +167,6 @@ class Game(arcade.Window):
             #     self.scene.add_sprite("test_hbs", enem)
 
         # Move the player
-
-        # self.player_sprite.update()
 
         cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
                                    self.player_sprite.center_y - SCREEN_HEIGHT / 2)

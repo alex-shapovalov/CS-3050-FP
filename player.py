@@ -38,16 +38,6 @@ class Player(arcade.Sprite):
         self.screen_height: int = screen_height
 
 
-    # def update(self):
-    #     """ Move the player """
-
-        # self.center_x += self.change_x
-        # self.center_y += self.change_y
-        #
-        # self.tex.center_x = self.center_x
-        # self.tex.center_y = self.center_y + self.tex.height/2
-
-
     def update_velocity(self, vel):
         if vel[0] != -1:
             self.velocity[0] = vel[0]
