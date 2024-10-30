@@ -38,10 +38,6 @@ class Enemy(arcade.Sprite):
             self.center_x = SCREEN_WIDTH + 50
             self.center_y = random.randint(0, SCREEN_HEIGHT)
 
-        # self.tex = arcade.Sprite("enemy.png", scale=SPRITE_SCALING, center_x=self.center_x, center_y=self.center_y)
-
-        # self.width = self.tex.width
-        # self.height = self.tex.height/3
 
         hitbox = []
         self.hitbox_width = self.width
@@ -104,11 +100,16 @@ class Enemy(arcade.Sprite):
         if wall != []:
             # Checks every wall we are colliding with to make sure we cant run further in that direction
             for w in wall:
-                if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER and ((w.top >= self.bottom and self.change_y < 0) or (w.bottom <= self.top and self.change_y > 0)):
-                    self.change_y = 0
-                if w.bottom + COL_BUFFER < self.center_y-self.height/2 < w.top - COL_BUFFER and ((w.right >= self.left and self.change_x < 0) or (w.left <= self.right and self.change_x > 0)):
-                    self.change_x = 0
 
+                if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER:
+                    if (w.center_y-w.height < self.center_y-self.height and self.change_y < 0) or (w.center_y-w.height > self.center_y-self.height and self.change_y > 0):
+                        self.change_y = 0
+                elif w.bottom + COL_BUFFER < self.center_y - self.height < w.top - COL_BUFFER:
+                    if (w.center_x-w.width < self.center_x + self.width and self.change_x < 0) or (w.center_x + w.width > self.center_x - self.width and self.change_x > 0):
+                        self.change_x = 0
+
+        # self.center_x += self.change_x
+        # self.center_y += self.change_y
         # super().update()
 
     def receive_damage(self, amount):

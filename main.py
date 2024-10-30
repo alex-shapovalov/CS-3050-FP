@@ -52,7 +52,7 @@ class Game(arcade.Window):
 
         wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250,
                              hit_box_algorithm=None)
-        wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/4], [-wall.width, -wall.height/4]]
+        wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
 
         wall.set_hit_box(wall_hb)
         self.wall_list.append(wall)
@@ -162,9 +162,6 @@ class Game(arcade.Window):
                     self.scene.get_sprite_list("enemy_mid_b").append(enem)
                 else:
                     self.scene.get_sprite_list("enemy_back").append(enem)
-
-            # if enem not in self.scene.get_sprite_list("test_hbs"):
-            #     self.scene.add_sprite("test_hbs", enem)
 
         # Move the player
 
