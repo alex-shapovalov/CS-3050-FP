@@ -65,8 +65,7 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250,
-                             hit_box_algorithm=None)
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250, hit_box_algorithm=None)
         wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
 
         wall.set_hit_box(wall_hb)

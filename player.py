@@ -33,20 +33,25 @@ class Player(arcade.Sprite):
 
 
         # following values are subject to change
-        self.health: int = damage
-        self.damage: int = health
+        self.health: int = health
+        self.damage: int = damage
 
-        self.player.center_x = screen_width / 2
-        self.player.center_y = screen_height / 2
+        self.center_x = screen_width / 2
+        self.center_y = screen_height / 2
+
+        self.original_texture = arcade.load_texture("player.png")
+        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
+        self.width = self.original_texture.width/2
+        self.height = self.original_texture.height
 
         hitbox = []
-        self.hitbox_width = self.width
-        self.hitbox_height = self.height/3
+        self.hitbox_width = self.width/3
+        self.hitbox_height = self.height/6
         num_points = 20  # Adjust for more precision
         for i in range(num_points):
             angle = math.radians(360 / num_points * i)
             x = self.hitbox_width * math.cos(angle)
-            y = self.hitbox_height * math.sin(angle) - self.height
+            y = self.hitbox_height * math.sin(angle) - self.height/2
             hitbox.append((x, y))
         self.set_hit_box(hitbox)
 
@@ -56,8 +61,7 @@ class Player(arcade.Sprite):
         self.screen_height: int = screen_height
         self.damaged = False
         self.damaged_time = 0
-        self.original_texture = arcade.load_texture("player.png")
-        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
+
         
         self.is_attacking = False
         self.last_attack_time = 0
