@@ -87,9 +87,9 @@ class GuideView(arcade.View):
         arcade.draw_text("Game Guide", self.window.width / 2, self.window.height - 100, arcade.color.DARK_RED, font_size=50, anchor_x="center", font_name="Kenney Future")
 
         # Write out guide for the game
-        arcade.draw_text("In this game, you are a knight defending the kingdom.\n"
-                         "Your task is to defeat the enemies and protect your land.\n"
-                         "Use W, A, S, D to move and the arrow keys to attack.", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
+        arcade.draw_text("In this game, you must defend yourself against a horde of enemies.\n"
+                         "Will you protect the land or just perish with the rest?\n"
+                         "Use W, A, S, D to move and click to attack.", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
 
         # Draw "Go Back" button
         arcade.draw_text("Go Back", self.window.width / 2, 100, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
@@ -98,3 +98,47 @@ class GuideView(arcade.View):
         # Go Back button click
         if self.window.width / 2 - 100 < x < self.window.width / 2 + 100 and 100 - 20 < y < 100 + 20:
             self.go_back()
+
+class EscView(arcade.View):
+    def __init__(self, game_view, go_to_menu):
+        super().__init__()
+        self.game_view = game_view
+        self.go_to_menu = go_to_menu
+
+    def on_draw(self):
+        self.clear()
+        # Keep the game view in the background
+        self.game_view.on_draw()
+
+        # Center the camera based on when the camera is, when first implementing this menu, it stayed at spawn...
+        cam_x, cam_y = self.game_view.camera.position
+        center_x = cam_x + self.window.width / 2
+        center_y = cam_y + self.window.height / 2
+
+        # Transparent overlay
+        arcade.draw_rectangle_filled(center_x, center_y, self.window.width, self.window.height, arcade.color.BLACK + (200,))
+
+        # Draw buttons
+        arcade.draw_text("Pause Menu", center_x, center_y + 150, arcade.color.DARK_RED, font_size=40, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Resume", center_x, center_y + 30, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Main Menu", center_x, center_y - 60, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ESCAPE:
+            self.window.show_view(self.game_view)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        # Also center where the clickable area of the buttons will be...
+        cam_x, cam_y = self.game_view.camera.position
+        center_x = cam_x + self.window.width / 2
+        center_y = cam_y + self.window.height / 2
+        adjusted_x = x + cam_x
+        adjusted_y = y + cam_y
+
+        # Resume button clicks
+        if center_x - 50 < adjusted_x < center_x + 50 and center_y + 15 < adjusted_y < center_y + 45:
+            self.window.show_view(self.game_view)
+
+        # Main menu button clicks
+        elif center_x - 50 < adjusted_x < center_x + 50 and center_y - 75 < adjusted_y < center_y - 45:
+            self.go_to_menu()

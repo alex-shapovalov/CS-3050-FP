@@ -1,12 +1,10 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
 import pyglet
-import os
-import sys
 from world import World
 from player import Player
 from enemy import Enemy
-from menu import MenuView, GuideView
+from menu import MenuView, GuideView, EscView
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -33,6 +31,7 @@ class Game(arcade.View):
         self.enemy_list = arcade.SpriteList()
         self.time_since_last_spawn = 0
         self.spawn_time = ENEMY_SPAWN_INTERVAL
+
         # Keeps track of world
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -164,7 +163,11 @@ class Game(arcade.View):
 
     def on_key_press(self, key, modifiers):
         # If the player presses a key, update the speed
-        if key == arcade.key.UP or key == arcade.key.W:
+        if key == arcade.key.ESCAPE:
+            pause_view = EscView(self, go_back_to_menu)
+            self.window.show_view(pause_view)
+
+        elif key == arcade.key.UP or key == arcade.key.W:
             self.player.change_y = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
@@ -175,9 +178,6 @@ class Game(arcade.View):
 
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.player.change_x = MOVEMENT_SPEED
-
-        # elif key == arcade.key.H:
-        #     self.player.player_give_damage(enemy_list=self.enemy_list)
 
     def on_key_release(self, key, modifiers):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
@@ -191,8 +191,6 @@ class Game(arcade.View):
         self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
-    # Close 'Main Menu' window
-
     # Create 'Game' window
     game_view = Game()
     game_view.setup()
@@ -220,7 +218,6 @@ def main():
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     window.show_view(menu_view)
     arcade.run()
-
 
 if __name__ == "__main__":
     main()
