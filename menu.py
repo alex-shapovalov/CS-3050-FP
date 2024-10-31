@@ -64,6 +64,11 @@ class MenuView(arcade.View):
         elif self.window.width / 2 - self.button_width / 2 < x < self.window.width / 2 + self.button_width / 2 and self.exit_button_y - self.button_height / 2 < y < self.exit_button_y + self.button_height / 2:
             self.exit_game()
 
+        # Image Citation:
+
+        # https://www.freepik.com/free-photo/weathered-page_4100652.htm#query=parchment%20texture&position=4&from_view=keyword&track=ais_hybrid&uuid=f987e52f-6313-4f80-a4d9-6d5986769fdf
+        # Image by rawpixel.com on Freepik
+
 class GuideView(arcade.View):
     def __init__(self, go_back):
         super().__init__()
