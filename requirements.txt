@@ -1,3 +1,5 @@
 numpy
-arcade
+arcade~=2.6.17
 perlin_noise
+pyglet~=2.0.dev23
+Pillow~=9.3.0
