@@ -59,11 +59,14 @@ class Game(arcade.Window):
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
         # Set up the player
-        self.player_sprite = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.scene.add_sprite("player_fore", self.player_sprite)
+        self.player = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player.center_x = SCREEN_WIDTH / 2
+        self.player.center_y = SCREEN_HEIGHT / 2
+
+        self.scene.add_sprite("player_fore", self.player)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
-        self.physics_engine.add_sprite(self.player_sprite, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
         self.physics_engine.add_sprite_list(self.wall_list, body_type=1, collision_type="wall")
 
     def on_draw(self):
@@ -99,7 +102,7 @@ class Game(arcade.Window):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player_sprite, self.enemy_list, self.wall_list)
+            enemy = Enemy(self.player, self.enemy_list, self.wall_list)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
             self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
@@ -111,23 +114,23 @@ class Game(arcade.Window):
         self.enemy_list.update()
 
         # get the closest wall to the player
-        p_wall = arcade.get_closest_sprite(self.player_sprite, self.wall_list)
+        p_wall = arcade.get_closest_sprite(self.player, self.wall_list)
 
         # Check if the players y-index is above or below the closest wall's y
         # Adds player.tex to the scene so we only disply the player's texture, not its hitbox
-        if self.player_sprite.center_y - self.player_sprite.height / 2 < p_wall[0].center_y - p_wall[
-            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_fore"):
-            self.scene.get_sprite_list("player_fore").append(self.player_sprite)
+        if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_fore"):
+            self.scene.get_sprite_list("player_fore").append(self.player)
 
-            if self.player_sprite in self.scene.get_sprite_list("player_back"):
-                self.scene.get_sprite_list("player_back").remove(self.player_sprite)
+            if self.player in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").remove(self.player)
 
-        elif self.player_sprite.center_y - self.player_sprite.height / 2 > p_wall[0].center_y - p_wall[
-            0].height / 2 and self.player_sprite not in self.scene.get_sprite_list("player_back"):
-            self.scene.get_sprite_list("player_back").append(self.player_sprite)
+        elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
+            self.scene.get_sprite_list("player_back").append(self.player)
 
-            if self.player_sprite in self.scene.get_sprite_list("player_fore"):
-                self.scene.get_sprite_list("player_fore").remove(self.player_sprite)
+            if self.player in self.scene.get_sprite_list("player_fore"):
+                self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
         for enem in self.enemy_list:
@@ -152,21 +155,21 @@ class Game(arcade.Window):
 
             # Determine if enemy is above or below the closest wall and the player
             if enem_bottom < e_wall_bottom:
-                if enem_bottom > self.player_sprite.center_y - self.player_sprite.height / 2:
+                if enem_bottom > self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_f").append(enem)
                 else:
                     self.scene.get_sprite_list("enemy_fore").append(enem)
 
             elif enem_bottom > e_wall_bottom:
-                if enem_bottom < self.player_sprite.center_y - self.player_sprite.height / 2:
+                if enem_bottom < self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_b").append(enem)
                 else:
                     self.scene.get_sprite_list("enemy_back").append(enem)
 
         # Move the player
 
-        cam_loc = pyglet.math.Vec2(self.player_sprite.center_x - SCREEN_WIDTH / 2,
-                                   self.player_sprite.center_y - SCREEN_HEIGHT / 2)
+        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
+                                   self.player.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
 
         self.physics_engine.step()
@@ -192,8 +195,8 @@ class Game(arcade.Window):
             vec_vel[0] = MOVEMENT_SPEED
 
         if vec_vel[0] != -1 or vec_vel[1] != -1:
-            updated_vel = self.player_sprite.update_velocity(vec_vel)
-            self.physics_engine.set_velocity(self.player_sprite, updated_vel)
+            updated_vel = self.player.update_velocity(vec_vel)
+            self.physics_engine.set_velocity(self.player, updated_vel)
 
     def on_key_release(self, key, modifiers):
 
@@ -208,8 +211,8 @@ class Game(arcade.Window):
         # handle this.
 
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            updated_vel = self.player_sprite.update_velocity([0,0])
-            self.physics_engine.set_velocity(self.player_sprite, updated_vel)
+            updated_vel = self.player.update_velocity([0,0])
+            self.physics_engine.set_velocity(self.player, updated_vel)
 
 
 
