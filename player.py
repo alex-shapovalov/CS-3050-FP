@@ -36,6 +36,9 @@ class Player(arcade.Sprite):
         self.health: int = damage
         self.damage: int = health
 
+        self.player.center_x = screen_width / 2
+        self.player.center_y = screen_height / 2
+
         hitbox = []
         self.hitbox_width = self.width
         self.hitbox_height = self.height/3
@@ -81,10 +84,9 @@ class Player(arcade.Sprite):
             self.velocity[1] = vel[1]
 
         return self.velocity
-    def update(self):
-        self.center_x += self.change_x
-        self.center_y += self.change_y
+    
 
+    def update(self):
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False
 

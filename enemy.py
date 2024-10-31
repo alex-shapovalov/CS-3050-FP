@@ -10,7 +10,7 @@ PLAYER_PADDING = 150
 COL_BUFFER = 5
 
 class Enemy(arcade.Sprite):
-    def __init__(self, player, player_damage, enemy_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
+    def __init__(self, player, player_damage, enemy_list, wall_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
         super().__init__(image, sprite_scaling)
         self.player = player
         self.player_damage = player_damage
@@ -36,8 +36,8 @@ class Enemy(arcade.Sprite):
             self.center_x = -50
             self.center_y = random.randint(0, screen_height)
         elif spawn_location == "right":
-            self.center_x = SCREEN_WIDTH + 50
-            self.center_y = random.randint(0, SCREEN_HEIGHT)
+            self.center_x = screen_width + 50
+            self.center_y = random.randint(0, screen_height)
 
 
         hitbox = []

@@ -78,8 +78,6 @@ class Game(arcade.View):
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
         self.player = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.player.center_x = SCREEN_WIDTH / 2
-        self.player.center_y = SCREEN_HEIGHT / 2
 
         self.scene.add_sprite("player_fore", self.player)
 
@@ -104,6 +102,13 @@ class Game(arcade.View):
         self.player.draw()
         self.scene.draw()
 
+        self.player.draw_hit_box((1,0,0))
+        for i in self.enemy_list:
+            i.draw_hit_box((1,0,0))
+
+        for i in self.wall_list:
+            i.draw_hit_box((1,0,0))
+
         if self.player.damaged:
             if self.player.health <= 0:
                 # Close 'Game' window
@@ -118,8 +123,7 @@ class Game(arcade.View):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
-            enemy = Enemy(self.player, self.enemy_list, self.wall_list)
+            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
             self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
@@ -156,11 +160,11 @@ class Game(arcade.View):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
-        for enem in self.enemy_list:
+        for enemy in self.enemy_list:
             # get closest wall to enemy
-            self.physics_engine.set_velocity(enem, (enem.change_x, enem.change_y))
+            self.physics_engine.set_velocity(enemy, (enemy.change_x, enemy.change_y))
 
-            e_wall = arcade.get_closest_sprite(enem, self.wall_list)
+            e_wall = arcade.get_closest_sprite(enemy, self.wall_list)
 
             # find bottom point of sprites for later
             enem_bottom = enemy.center_y - enemy.height / 2
@@ -187,10 +191,10 @@ class Game(arcade.View):
                 if enem_bottom < self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_b").append(enemy)
                 else:
-                    self.scene.get_sprite_list("enemy_back").append(enem)
+                    self.scene.get_sprite_list("enemy_back").append(enemy)
 
         # Move the player
-
+        self.player.update()
         cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
                                    self.player.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
@@ -236,13 +240,6 @@ class Game(arcade.View):
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
             updated_vel = self.player.update_velocity([0,0])
             self.physics_engine.set_velocity(self.player, updated_vel)
-
-
-        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
-            self.player.change_y = 0
-
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            self.player.change_x = 0
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         self.player.is_attacking = True
