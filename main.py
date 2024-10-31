@@ -1,5 +1,8 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
+import math
+
 import arcade
+import pymunk
 import pyglet
 from world import World
 from player import Player
@@ -9,7 +12,8 @@ from menu import MenuView, GuideView, EscView
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
-MOVEMENT_SPEED = 5
+
+MOVEMENT_SPEED = 300
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
 PLAYER_HEALTH = 100
@@ -23,6 +27,8 @@ class Game(arcade.View):
         super().__init__()
 
         self.background = arcade.load_texture("grass.jfif")
+
+        self.physics_engine = None
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
         self.title = SCREEN_TITLE
@@ -51,6 +57,7 @@ class Game(arcade.View):
         self.world.setup()
 
         # Setting up wall interactions
+
         self.scene.add_sprite_list("enemy_back")
         self.scene.add_sprite_list("player_back")
         self.scene.add_sprite_list("enemy_mid_b")
@@ -58,7 +65,11 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y = SCREEN_HEIGHT / 2 + 30, hit_box_algorithm=None)
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250,
+                             hit_box_algorithm=None)
+        wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
+
+        wall.set_hit_box(wall_hb)
         self.wall_list.append(wall)
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
@@ -66,6 +77,15 @@ class Game(arcade.View):
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
+        self.player = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player.center_x = SCREEN_WIDTH / 2
+        self.player.center_y = SCREEN_HEIGHT / 2
+
+        self.scene.add_sprite("player_fore", self.player)
+
+        self.physics_engine = arcade.PymunkPhysicsEngine()
+        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine.add_sprite_list(self.wall_list, body_type=1, collision_type="wall")
 
     def on_draw(self):
         # Render the screen
@@ -92,19 +112,18 @@ class Game(arcade.View):
 
 
     def on_update(self, delta_time):
-        # Move the player and keep the camera centered
-        self.player.update()
-        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2, self.player.center_y - SCREEN_HEIGHT / 2)
-        self.camera.move(cam_loc)
+        """ Movement and game logic """
 
-        self.enemy_list.update()
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
             enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+            enemy = Enemy(self.player, self.enemy_list, self.wall_list)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
+            self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+            self.scene.add_sprite("enemy_fore", enemy)
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -121,18 +140,27 @@ class Game(arcade.View):
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
+            if self.player in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").remove(self.player)
 
+        elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
+            self.scene.get_sprite_list("player_back").append(self.player)
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
 
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
+            if self.player in self.scene.get_sprite_list("player_fore"):
+                self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
-        for enemy in self.enemy_list:
-            # Get closest wall to the enemy
-            e_wall = arcade.get_closest_sprite(enemy, self.wall_list)
+        for enem in self.enemy_list:
+            # get closest wall to enemy
+            self.physics_engine.set_velocity(enem, (enem.change_x, enem.change_y))
+
+            e_wall = arcade.get_closest_sprite(enem, self.wall_list)
 
             # find bottom point of sprites for later
             enem_bottom = enemy.center_y - enemy.height / 2
@@ -159,27 +187,57 @@ class Game(arcade.View):
                 if enem_bottom < self.player.center_y - self.player.height / 2:
                     self.scene.get_sprite_list("enemy_mid_b").append(enemy)
                 else:
-                    self.scene.get_sprite_list("enemy_back").append(enemy)
+                    self.scene.get_sprite_list("enemy_back").append(enem)
+
+        # Move the player
+
+        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
+                                   self.player.center_y - SCREEN_HEIGHT / 2)
+        self.camera.move(cam_loc)
+
+        self.physics_engine.step()
+
 
     def on_key_press(self, key, modifiers):
         # If the player presses a key, update the speed
+
+        vec_vel = [-1, -1]
         if key == arcade.key.ESCAPE:
             pause_view = EscView(self, go_back_to_menu)
             self.window.show_view(pause_view)
 
-        elif key == arcade.key.UP or key == arcade.key.W:
-            self.player.change_y = MOVEMENT_SPEED
+        if key == arcade.key.UP or key == arcade.key.W:
+            vec_vel[1] = MOVEMENT_SPEED
 
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player.change_y = -MOVEMENT_SPEED
+            vec_vel[1] = -MOVEMENT_SPEED
 
-        elif key == arcade.key.LEFT or key == arcade.key.A:
-            self.player.change_x = -MOVEMENT_SPEED
-
+        if key == arcade.key.LEFT or key == arcade.key.A:
+            vec_vel[0] = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player.change_x = MOVEMENT_SPEED
+            vec_vel[0] = MOVEMENT_SPEED
+
+        if vec_vel[0] != -1 or vec_vel[1] != -1:
+            updated_vel = self.player.update_velocity(vec_vel)
+            self.physics_engine.set_velocity(self.player, updated_vel)
 
     def on_key_release(self, key, modifiers):
+
+        """Called when the user releases a key. """
+
+        # If a player releases a key, zero out the speed.
+
+        # This doesn't work well if multiple keys are pressed.
+
+        # Use 'better move by keyboard' example if you need to
+
+        # handle this.
+
+        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
+            updated_vel = self.player.update_velocity([0,0])
+            self.physics_engine.set_velocity(self.player, updated_vel)
+
+
         if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
             self.player.change_y = 0
 

@@ -1,4 +1,6 @@
 import arcade
+import pymunk
+import math
 import time
 import enemy
 
@@ -29,11 +31,24 @@ class Player(arcade.Sprite):
             scale=sprite_scaling
         )
 
+
         # following values are subject to change
-        self.damage = damage
-        self.health: int = health
-        self.center_x: int = 50
-        self.center_y: int = 50
+        self.health: int = damage
+        self.damage: int = health
+
+        hitbox = []
+        self.hitbox_width = self.width
+        self.hitbox_height = self.height/3
+        num_points = 20  # Adjust for more precision
+        for i in range(num_points):
+            angle = math.radians(360 / num_points * i)
+            x = self.hitbox_width * math.cos(angle)
+            y = self.hitbox_height * math.sin(angle) - self.height
+            hitbox.append((x, y))
+        self.set_hit_box(hitbox)
+
+        self.velocity = [0,0]
+
         self.screen_width: int = screen_width
         self.screen_height: int = screen_height
         self.damaged = False
@@ -59,6 +74,13 @@ class Player(arcade.Sprite):
         
 
 
+    def update_velocity(self, vel):
+        if vel[0] != -1:
+            self.velocity[0] = vel[0]
+        if vel[1] != -1:
+            self.velocity[1] = vel[1]
+
+        return self.velocity
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
