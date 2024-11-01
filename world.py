@@ -52,7 +52,7 @@ class World(arcade.Window):
         # Let's make some noise
         world_noise = PerlinNoise(octaves=100, seed=int(SEED))
 
-        # Create 2d array, to hold all the noise rooms
+        # Create 2d array, to hold all the rooms
         rows, cols = (WORLD_SIZE, WORLD_SIZE)
         self.rooms = [[0 for i in range(cols)] for j in range(rows)]
         for i in range(cols):
@@ -63,9 +63,6 @@ class World(arcade.Window):
                 y = i * ROOM_SIZE
                 self.rooms[i][j] = Room(x = x, y = y, size = size, indoor = indoor)
         #print(rooms)
-
-        # Create 2d array, to hold all the rooms
-
 
 
     def setup(self):
