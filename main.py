@@ -76,7 +76,6 @@ class Game(arcade.View):
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
-        self.player = Player(5, 5, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
 
         self.scene.add_sprite("player_fore", self.player)
 
