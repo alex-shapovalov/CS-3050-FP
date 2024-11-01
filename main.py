@@ -7,7 +7,7 @@ import pyglet
 from world import World
 from player import Player
 from enemy import Enemy
-from menu import MenuView, GuideView, EscView
+from menu import MenuView, GuideView, EscView, DeathView
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -16,7 +16,7 @@ SCREEN_TITLE = "Game"
 MOVEMENT_SPEED = 350
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
-PLAYER_HEALTH = 100
+PLAYER_HEALTH = 20
 PLAYER_DAMAGE = 50
 
 COLOR = arcade.color.AMAZON
@@ -110,8 +110,8 @@ class Game(arcade.View):
         if self.player.damaged:
             if self.player.health <= 0:
                 # Close 'Game' window
-                menu = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
-                arcade.get_window().show_view(menu)
+                death_view = DeathView(self, go_back_to_menu)
+                self.window.show_view(death_view)
 
 
     def on_update(self, delta_time):

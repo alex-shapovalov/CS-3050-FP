@@ -147,3 +147,38 @@ class EscView(arcade.View):
         # Main menu button clicks
         elif center_x - 50 < adjusted_x < center_x + 50 and center_y - 75 < adjusted_y < center_y - 45:
             self.go_to_menu()
+
+class DeathView(arcade.View):
+    def __init__(self, game_view, go_to_menu):
+        super().__init__()
+        self.game_view = game_view
+        self.go_to_menu = go_to_menu
+
+    def on_draw(self):
+        self.clear()
+        # Keep the game view in the background
+        self.game_view.on_draw()
+
+        # Center the camera based on when the camera is, when first implementing this menu, it stayed at spawn...
+        cam_x, cam_y = self.game_view.camera.position
+        center_x = cam_x + self.window.width / 2
+        center_y = cam_y + self.window.height / 2
+
+        # Transparent overlay
+        arcade.draw_rectangle_filled(center_x, center_y, self.window.width, self.window.height, arcade.color.BLACK + (200,))
+
+        # Draw buttons
+        arcade.draw_text("You died...", center_x, center_y + 150, arcade.color.DARK_RED, font_size=40, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Main Menu", center_x, center_y - 60, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        # Also center where the clickable area of the buttons will be...
+        cam_x, cam_y = self.game_view.camera.position
+        center_x = cam_x + self.window.width / 2
+        center_y = cam_y + self.window.height / 2
+        adjusted_x = x + cam_x
+        adjusted_y = y + cam_y
+
+        # Main menu button clicks
+        if center_x - 50 < adjusted_x < center_x + 50 and center_y - 75 < adjusted_y < center_y - 45:
+            self.go_to_menu()
