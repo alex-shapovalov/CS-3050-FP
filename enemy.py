@@ -53,8 +53,8 @@ class Enemy(arcade.Sprite):
 
 
     def update(self):
-        self.distance = math.sqrt((self.player.center_x - self.center_x) ** 2 + (self.player.center_y - self.center_y) ** 2)
-
+        self.calculate_distance()
+        
         x_diff = self.player.center_x - self.center_x
         y_diff = self.player.center_y - self.center_y
         angle = math.atan2(y_diff, x_diff)
@@ -87,7 +87,7 @@ class Enemy(arcade.Sprite):
             if enemy == self:
                 continue
 
-            self.distance = math.sqrt((enemy.center_x - self.center_x) ** 2 + (enemy.center_y - self.center_y) ** 2)
+            self.calculate_distance()
 
             # Keep enemies from overlapping
             if self.distance < PLAYER_PADDING:
@@ -116,6 +116,9 @@ class Enemy(arcade.Sprite):
         # self.center_x += self.change_x
         # self.center_y += self.change_y
         # super().update()
+
+    def calculate_distance(self):
+        self.distance = math.sqrt((self.player.center_x - self.center_x) ** 2 + (self.player.center_y - self.center_y) ** 2)
 
     def enemy_receive_damage(self):
         self.health -= self.player_damage

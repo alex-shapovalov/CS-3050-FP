@@ -7,7 +7,7 @@ import pyglet
 from world import World
 from player import Player
 from enemy import Enemy
-from menu import MenuView, GuideView, EscView, DeathView
+from menu import MenuView, GuideView, EscView
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -32,6 +32,7 @@ class Game(arcade.View):
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
         self.title = SCREEN_TITLE
+        self.keys_pressed = set()
 
         # Keeps track of enemy spawns
         self.enemy_list = arcade.SpriteList()
@@ -110,8 +111,8 @@ class Game(arcade.View):
         if self.player.damaged:
             if self.player.health <= 0:
                 # Close 'Game' window
-                death_view = DeathView(self, go_back_to_menu)
-                self.window.show_view(death_view)
+                menu = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
+                arcade.get_window().show_view(menu)
 
 
     def on_update(self, delta_time):
@@ -203,25 +204,15 @@ class Game(arcade.View):
     def on_key_press(self, key, modifiers):
         # If the player presses a key, update the speed
 
-        vec_vel = [-1, -1]
+        self.keys_pressed.add(key)
+    
+        # Check key combinations to determine direction
+        self.update_movement()
+
+        # Handle special key (ESC) to pause the game
         if key == arcade.key.ESCAPE:
             pause_view = EscView(self, go_back_to_menu)
             self.window.show_view(pause_view)
-
-        if key == arcade.key.UP or key == arcade.key.W:
-            vec_vel[1] = MOVEMENT_SPEED
-
-        elif key == arcade.key.DOWN or key == arcade.key.S:
-            vec_vel[1] = -MOVEMENT_SPEED
-
-        if key == arcade.key.LEFT or key == arcade.key.A:
-            vec_vel[0] = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT or key == arcade.key.D:
-            vec_vel[0] = MOVEMENT_SPEED
-
-        if vec_vel[0] != -1 or vec_vel[1] != -1:
-            updated_vel = self.player.update_velocity(vec_vel)
-            self.physics_engine.set_velocity(self.player, updated_vel)
 
     def on_key_release(self, key, modifiers):
 
@@ -235,9 +226,26 @@ class Game(arcade.View):
 
         # handle this.
 
-        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S or  key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            updated_vel = self.player.update_velocity([0,0])
-            self.physics_engine.set_velocity(self.player, updated_vel)
+        if key in self.keys_pressed:
+            self.keys_pressed.remove(key)
+
+        self.update_movement()
+
+    def update_movement(self):
+        vec_vel = [0, 0]
+
+        if arcade.key.UP in self.keys_pressed or arcade.key.W in self.keys_pressed:
+            vec_vel[1] = MOVEMENT_SPEED
+        elif arcade.key.DOWN in self.keys_pressed or arcade.key.S in self.keys_pressed:
+            vec_vel[1] = -MOVEMENT_SPEED
+
+        if arcade.key.LEFT in self.keys_pressed or arcade.key.A in self.keys_pressed:
+            vec_vel[0] = -MOVEMENT_SPEED
+        elif arcade.key.RIGHT in self.keys_pressed or arcade.key.D in self.keys_pressed:
+            vec_vel[0] = MOVEMENT_SPEED
+
+        updated_vel = self.player.update_velocity(vec_vel)
+        self.physics_engine.set_velocity(self.player, updated_vel)
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         self.player.is_attacking = True

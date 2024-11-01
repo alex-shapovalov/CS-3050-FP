@@ -131,6 +131,9 @@ class Player(arcade.Sprite):
     def player_give_damage(self, enemy_list):
         enemies_to_damage = []
         for enemy in enemy_list:
+            print('1', enemy.distance)
+            enemy.calculate_distance()
+            print('2', enemy.distance)
             if enemy.distance <= PLAYER_PADDING + 250:
                 enemies_to_damage.append(enemy)
         
