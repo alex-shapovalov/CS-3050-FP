@@ -40,7 +40,6 @@ class Player(arcade.Sprite):
         self.center_y = screen_height / 2
 
         self.original_texture = arcade.load_texture("player.png")
-        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
         self.width = self.original_texture.width/2
         self.height = self.original_texture.height
 
@@ -69,8 +68,9 @@ class Player(arcade.Sprite):
         self.facing = FACING_RIGHT
 
         self.idle_texture_pair = load_texture_pair(f"player.png")
-
         self.walking_texture_pair = load_texture_pair(f"player.png")
+        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
+
 
         self.curr_texture = 0
         self.attack_animation = []
@@ -79,7 +79,6 @@ class Player(arcade.Sprite):
             texture = load_texture_pair(filename)
             self.attack_animation.append(texture)
         
-
 
     def update_velocity(self, vel):
         if vel[0] != -1:
@@ -94,7 +93,7 @@ class Player(arcade.Sprite):
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False
 
-        if self.change_x == 0 and self.change_y == 0:
+        if self.change_x == 0 and self.change_y == 0 and not self.damaged:
             self.texture = self.idle_texture_pair[self.facing]
         else:
             if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
@@ -105,7 +104,9 @@ class Player(arcade.Sprite):
                 self.facing = FACING_LEFT
             elif self.change_x > 0:
                 self.facing = FACING_RIGHT
-            self.texture = self.walking_texture_pair[self.facing]
+
+            if not self.damaged:
+                self.texture = self.walking_texture_pair[self.facing]
 
         if self.is_attacking:
             self.curr_texture += 0.35
