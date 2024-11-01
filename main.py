@@ -218,22 +218,18 @@ class Game(arcade.View):
 
         """Called when the user releases a key. """
 
-        # If a player releases a key, zero out the speed.
-
-        # This doesn't work well if multiple keys are pressed.
-
-        # Use 'better move by keyboard' example if you need to
-
-        # handle this.
-
+        # remove that key from our set to update movement
         if key in self.keys_pressed:
             self.keys_pressed.remove(key)
 
+        # update movement
         self.update_movement()
 
     def update_movement(self):
+        '''function that will update users movement'''
         vec_vel = [0, 0]
 
+        # key press checks
         if arcade.key.UP in self.keys_pressed or arcade.key.W in self.keys_pressed:
             vec_vel[1] = MOVEMENT_SPEED
         elif arcade.key.DOWN in self.keys_pressed or arcade.key.S in self.keys_pressed:
@@ -244,6 +240,7 @@ class Game(arcade.View):
         elif arcade.key.RIGHT in self.keys_pressed or arcade.key.D in self.keys_pressed:
             vec_vel[0] = MOVEMENT_SPEED
 
+        # update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
 

@@ -129,19 +129,7 @@ class Player(arcade.Sprite):
             pass
 
     def player_give_damage(self, enemy_list):
-        enemies_to_damage = []
         for enemy in enemy_list:
-            print('1', enemy.distance)
-            enemy.calculate_distance()
-            print('2', enemy.distance)
-            if enemy.distance <= PLAYER_PADDING + 250:
-                enemies_to_damage.append(enemy)
-        
-        for enemy in enemies_to_damage:
-            enemy.enemy_receive_damage()
-
-        # if self.attack_type == "melee":
-            # Player is damaged by contact
-            # self.player_sprite.receive_damage(self.damage)
-        # elif self.attack_type == "ranged":
-            # Player is damaged if projectile hits him
+            enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
+            if enemy.distance <= PLAYER_PADDING + 250: # this if statement is subject to change
+                enemy.enemy_receive_damage()
