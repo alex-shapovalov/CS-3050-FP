@@ -79,17 +79,13 @@ class World(arcade.Window):
 
                 if i == 0:  # If we are on the south edge, there is no room to the south
                     south = False
-                elif self.rooms[i-1][j].north: # If the room south of us has a door to the north, we need a door to the south
-                    south = True
                 else:
-                    south = False
+                    south = self.rooms[i-1][j].north
 
                 if j == 0: # If we are on the west edge, there is no door to the west
                     west = False
-                elif self.rooms[i][j-1].east: # If the room west of us has a door to the east, we need a door to the west
-                    west = True
                 else:
-                    west = False
+                    west = self.rooms[i][j-1].east
 
                 north = False
                 if i != WORLD_SIZE-1 and random.random() < DOOR_CHANCE:
@@ -114,8 +110,52 @@ class World(arcade.Window):
                                         size = size, indoor = indoor,
                                         north = north, south = south, west = west, east = east)
 
-                # Create the walls based on where doors are
-                if self.rooms[i][j].indoor:
+                # For outdoor rooms, only generate walls if at the edge of the map
+                if self.rooms[i][j].indoor == False:
+                    # south
+                    if i == 0:
+                        curr_width = 8 * FLOOR_TILE_SIZE
+                        self.wall_sprite = arcade.Sprite("wall_hori_8.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=8 * FLOOR_TILE_SIZE,
+                                                         image_height=HORI_WALL_HEIGHT,
+                                                         center_x=int(x + 0.5 * FLOOR_TILE_SIZE + 0.5 * curr_width),
+                                                         center_y=int(
+                                                             y + 0 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT)),
+                        self.wall_list.append(self.wall_sprite[0])
+                    # north
+                    if i == WORLD_SIZE-1:
+                        curr_width = 8 * FLOOR_TILE_SIZE
+                        self.wall_sprite = arcade.Sprite("wall_hori_8.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=8 * FLOOR_TILE_SIZE,
+                                                         image_height=HORI_WALL_HEIGHT,
+                                                         center_x=int(x + 0.5 * FLOOR_TILE_SIZE + 0.5 * curr_width),
+                                                         center_y=int(y + 8.5 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), )
+                        self.wall_list.append(self.wall_sprite)
+                    # west
+                    if j == 0:
+                        curr_height = 11 * FLOOR_TILE_SIZE
+                        self.wall_sprite = arcade.Sprite("wall_verti_9.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=VERTI_WALL_WIDTH,
+                                                         image_height=11 * FLOOR_TILE_SIZE,
+                                                         center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
+                                                         center_y=int(y + 0.5 * curr_height))
+                        self.wall_list.append(self.wall_sprite)
+                    # east
+                    if j == WORLD_SIZE-1:
+                        curr_height = 11 * FLOOR_TILE_SIZE
+                        self.wall_sprite = arcade.Sprite("wall_verti_9.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=VERTI_WALL_WIDTH,
+                                                         image_height=11 * FLOOR_TILE_SIZE,
+                                                         center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
+                                                         center_y=int(y + 0.5 * curr_height))
+                        self.wall_list.append(self.wall_sprite)
+
+                # For indoor rooms, create the walls based on where doors are
+                elif self.rooms[i][j].indoor:
                     # south
                     if self.rooms[i][j].south:
                         curr_width = 3 * FLOOR_TILE_SIZE
@@ -225,8 +265,10 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height))
                         self.wall_list.append(self.wall_sprite)
 
-                    # sort sprite list by y coordinate, so they will be drawn in the correct order
-                    self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
+
+
+        # sort sprite list by y coordinate, so they will be drawn in the correct order
+        self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
 
 
 
