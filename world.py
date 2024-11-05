@@ -79,21 +79,25 @@ class World(arcade.Window):
 
                 if i == 0:  # If we are on the south edge, there is no room to the south
                     south = False
-                else:       # If the room south of us has a door to the north, we need a door to the south
-                    south = self.rooms[i-1][j].north
-
-                if j == 0:
-                    east = False
+                elif self.rooms[i-1][j].north: # If the room south of us has a door to the north, we need a door to the south
+                    south = True
                 else:
-                    east = self.rooms[i][j-1].west
+                    south = False
+
+                if j == 0: # If we are on the west edge, there is no door to the west
+                    west = False
+                elif self.rooms[i][j-1].east: # If the room west of us has a door to the east, we need a door to the west
+                    west = True
+                else:
+                    west = False
 
                 north = False
                 if i != WORLD_SIZE-1 and random.random() < DOOR_CHANCE:
                     north = True
 
-                west = False
+                east = False
                 if j != WORLD_SIZE-1 and random.random() < DOOR_CHANCE:
-                    west = True
+                    east = True
 
                 if north and south and west and east == False:
                     doorFactor = random.randrange(0, 3)
