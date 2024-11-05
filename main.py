@@ -1,7 +1,7 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
 import arcade
 import pyglet
-from world import World
+from world import World, ROOM_SIZE
 from creatures import Creature
 
 
@@ -64,7 +64,7 @@ class Game(arcade.Window):
             for j in range(len(self.world.rooms[i])):
                 room = self.world.rooms[i][j];
                 if (room.indoor):
-                    arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+                    arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         # Draw some walls. Remove this later.
         arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, SCREEN_WIDTH / 2,
@@ -137,7 +137,6 @@ def main():
     window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.setup()
     arcade.run()
-
 
 if __name__ == "__main__":
     main()
