@@ -79,7 +79,7 @@ class Game(arcade.Window):
 
         # Draw all the sprites.
         self.player_list.draw()
-
+        self.world.wall_list.draw()
 
     def on_update(self, delta_time):
         """ Movement and game logic """

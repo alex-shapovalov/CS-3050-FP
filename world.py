@@ -13,6 +13,7 @@ python -m arcade.examples.sprite_move_keyboard
 
 import arcade
 import datetime
+import random
 from perlin_noise import PerlinNoise
 from room import Room
 
@@ -20,6 +21,10 @@ from room import Room
 
 # Size of each floor tile in pyarcade units
 FLOOR_TILE_SIZE = 80
+
+HORI_WALL_HEIGHT = 2.5*FLOOR_TILE_SIZE
+VERTI_WALL_WIDTH = 0.5*FLOOR_TILE_SIZE
+WALL_SCALE = 1
 
 # World size in rooms.
 # This must be odd, or there are no courtyards. I think this is related to the perlin noise implementation.
@@ -36,12 +41,19 @@ SEED = int(datetime.datetime.now().timestamp())
 # Recommend between 0.3 and 0.7.
 INDOOR_CUTOFF = 0.43
 
+# The probablity that a given wall will have a door.
+DOOR_CHANCE = 0.75
+
 class World(arcade.Window):
 
     def __init__(self, color):
+        random.seed()
 
         # Variables that will hold sprite lists
         self.player_list = None
+
+        self.wall_list = arcade.SpriteList(use_spatial_hash = True)
+
         #
         # # Set up the player info
         self.player_sprite = None
@@ -54,14 +66,75 @@ class World(arcade.Window):
 
         # Create 2d array, to hold all the rooms
         rows, cols = (WORLD_SIZE, WORLD_SIZE)
-        self.rooms = [[0 for i in range(cols)] for j in range(rows)]
-        for i in range(cols):
-            for j in range(rows):
+        self.rooms = [[0 for i in range(rows)] for j in range(cols)]
+        for i in range(rows):
+            for j in range(cols):
                 indoor = (( world_noise.noise(coordinates = [i/rows,j/cols]) + 1 ) / 2) >= INDOOR_CUTOFF
                 size = ROOM_SIZE
                 x = j * ROOM_SIZE
                 y = i * ROOM_SIZE
-                self.rooms[i][j] = Room(x = x, y = y, size = size, indoor = indoor)
+
+                if i == 0:  # If we are on the north edge, there is no room to the north
+                    north = False
+                else:       # If the room north of us has a door to the south, we need a door to the north
+                    north = self.rooms[i-1][j].south
+
+                if j == 0:
+                    west = False
+                else:
+                    west = self.rooms[i][j-1].east
+
+                south = False
+                if i != WORLD_SIZE-1 and random.random() < DOOR_CHANCE:
+                    south = True
+
+                east = False
+                if j != WORLD_SIZE-1 and random.random() < DOOR_CHANCE:
+                    east = True
+
+                if north and south and east and west == False:
+                    doorFactor = random.randrange(0, 3)
+                    if doorFactor == 0:
+                        north = True
+                    elif doorFactor == 1:
+                        north = True
+                    elif doorFactor == 2:
+                        north = True
+                    elif doorFactor == 3:
+                        north = True
+
+                self.rooms[i][j] = Room(x = x, y = y,
+                                        size = size, indoor = indoor,
+                                        north = north, south = south, east = east, west = west)
+
+                # Create the walls based on where doors are
+                if self.rooms[i][j].indoor:
+                    # north wall
+                    if self.rooms[i][j].north:
+                        self.wall_sprite = arcade.Sprite("wall_hori_3.png",
+                                                         scale = WALL_SCALE,
+                                                         image_width = 3*FLOOR_TILE_SIZE,
+                                                         image_height = HORI_WALL_HEIGHT,
+                                                         center_x = x+0.5*FLOOR_TILE_SIZE,
+                                                         center_y = y+8.5*FLOOR_TILE_SIZE,
+                                                         )
+                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite = arcade.Sprite("wall_hori_3.png",
+                                                         scale = WALL_SCALE,
+                                                         image_width = 3 * FLOOR_TILE_SIZE,
+                                                         image_height = HORI_WALL_HEIGHT,
+                                                         center_x = x + 5.5 * FLOOR_TILE_SIZE,
+                                                         center_y = y + 8.5 * FLOOR_TILE_SIZE, )
+                        self.wall_list.append(self.wall_sprite)
+                    else:
+                        self.wall_sprite = arcade.Sprite("wall_hori_8.png",
+                                                         scale = WALL_SCALE,
+                                                         image_width = 8 * FLOOR_TILE_SIZE,
+                                                         image_height = HORI_WALL_HEIGHT,
+                                                         center_x = x + 0.5 * FLOOR_TILE_SIZE,
+                                                         center_y = y + 8.5 * FLOOR_TILE_SIZE, )
+                        self.wall_list.append(self.wall_sprite)
+
         #print(rooms)
 
 
