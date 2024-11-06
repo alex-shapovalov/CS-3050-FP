@@ -66,17 +66,6 @@ class Game(arcade.Window):
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
-        # Draw some walls. Remove this later.
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, SCREEN_WIDTH / 2,
-                                            FLOOR_TILE_SIZE, FLOOR_TILE_SIZE,
-                                            arcade.load_texture("floor.png"))
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2 + FLOOR_TILE_SIZE, SCREEN_WIDTH / 2,
-                                            FLOOR_TILE_SIZE/2, FLOOR_TILE_SIZE*3,
-                                            arcade.load_texture("wall_verti.png"))
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2 + 2*FLOOR_TILE_SIZE, SCREEN_WIDTH / 2,
-                                            FLOOR_TILE_SIZE, FLOOR_TILE_SIZE*2.5,
-                                            arcade.load_texture("wall_hori.png"))
-
         # Draw all the sprites.
         self.player_list.draw()
         self.world.wall_list.draw()
