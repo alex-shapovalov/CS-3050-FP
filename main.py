@@ -67,8 +67,8 @@ class Game(arcade.Window):
                     arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         # Draw all the sprites.
-        self.player_list.draw()
         self.world.wall_list.draw()
+        self.player_list.draw()
 
     def on_update(self, delta_time):
         """ Movement and game logic """
