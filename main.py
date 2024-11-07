@@ -68,12 +68,12 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250, hit_box_algorithm=None)
-        wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
+        # wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250, hit_box_algorithm=None)
+        # wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
 
-        wall.set_hit_box(wall_hb)
-        self.wall_list.append(wall)
-        self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
+        # wall.set_hit_box(wall_hb)
+        # self.wall_list.append(wall)
+        self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.world.wall_list)
 
         # Set up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -84,7 +84,7 @@ class Game(arcade.View):
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
-        self.physics_engine.add_sprite_list(self.wall_list, body_type=1, collision_type="wall")
+        self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
 
     def on_draw(self):
         # Render the screen
@@ -106,14 +106,14 @@ class Game(arcade.View):
 
         self.player.draw()
         self.scene.draw()
-        self.world.wall_list.draw()
+        # self.world.wall_list.draw()
 
         self.player.draw_hit_box((1,0,0))
         for i in self.enemy_list:
             i.draw_hit_box((1,0,0))
 
-        for i in self.wall_list:
-            i.draw_hit_box((1,0,0))
+        for i in self.world.wall_list:
+            arcade.draw_polygon_outline(i.get_adjusted_hit_box(), arcade.color.RED, 2)
 
         if self.player.damaged:
             if self.player.health <= 0:
@@ -140,7 +140,7 @@ class Game(arcade.View):
         self.enemy_list.update()
 
         # Get the closest wall to the player
-        p_wall = arcade.get_closest_sprite(self.player, self.wall_list)
+        p_wall = arcade.get_closest_sprite(self.player, self.world.wall_list)
 
         # Check if the players y-index is above or below the closest wall's y
         if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
@@ -169,7 +169,7 @@ class Game(arcade.View):
             # get closest wall to enemy
             self.physics_engine.set_velocity(enemy, (enemy.change_x, enemy.change_y))
 
-            e_wall = arcade.get_closest_sprite(enemy, self.wall_list)
+            e_wall = arcade.get_closest_sprite(enemy, self.world.wall_list)
 
             # find bottom point of sprites for later
             enem_bottom = enemy.center_y - enemy.height / 2
