@@ -1,15 +1,21 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
+import math
+
 import arcade
+import pymunk
 import pyglet
-from world import World
+from world import World, ROOM_SIZE
 from player import Player
 from enemy import Enemy
-from menu import MenuView, GuideView, EscView
+from menu import MenuView, GuideView, EscView, DeathView
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
-MOVEMENT_SPEED = 5
+
+FLOOR_TILE_SIZE = 80
+
+MOVEMENT_SPEED = 350
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
 PLAYER_HEALTH = 100
@@ -22,10 +28,13 @@ class Game(arcade.View):
         # Call the parent class initializer
         super().__init__()
 
-        self.background = arcade.load_texture("grass.jfif")
+        self.background = arcade.load_texture("floor.png")
+
+        self.physics_engine = None
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
         self.title = SCREEN_TITLE
+        self.keys_pressed = set()
 
         # Keeps track of enemy spawns
         self.enemy_list = arcade.SpriteList()
@@ -51,6 +60,7 @@ class Game(arcade.View):
         self.world.setup()
 
         # Setting up wall interactions
+
         self.scene.add_sprite_list("enemy_back")
         self.scene.add_sprite_list("player_back")
         self.scene.add_sprite_list("enemy_mid_b")
@@ -58,7 +68,10 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y = SCREEN_HEIGHT / 2 + 30, hit_box_algorithm=None)
+        wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250, hit_box_algorithm=None)
+        wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
+
+        wall.set_hit_box(wall_hb)
         self.wall_list.append(wall)
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.wall_list)
 
@@ -67,44 +80,59 @@ class Game(arcade.View):
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
+        self.scene.add_sprite("player_fore", self.player)
+
+        self.physics_engine = arcade.PymunkPhysicsEngine()
+        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine.add_sprite_list(self.wall_list, body_type=1, collision_type="wall")
+
     def on_draw(self):
         # Render the screen
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                                            self.background)
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
+                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                                            self.background)
 
         # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
         for i in range(len(self.world.rooms)):
             for j in range(len(self.world.rooms[i])):
                 room = self.world.rooms[i][j]
                 if (room.indoor):
-                    arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+                    arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         self.player.draw()
         self.scene.draw()
+        self.world.wall_list.draw()
+
+        self.player.draw_hit_box((1,0,0))
+        for i in self.enemy_list:
+            i.draw_hit_box((1,0,0))
+
+        for i in self.wall_list:
+            i.draw_hit_box((1,0,0))
 
         if self.player.damaged:
             if self.player.health <= 0:
-                # Close 'Game' window
-                menu = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
-                arcade.get_window().show_view(menu)
-
+                # show death view
+                death_view = DeathView(self, go_back_to_menu)
+                self.window.show_view(death_view)
 
     def on_update(self, delta_time):
-        # Move the player and keep the camera centered
-        self.player.update()
-        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2, self.player.center_y - SCREEN_HEIGHT / 2)
-        self.camera.move(cam_loc)
+        """ Movement and game logic """
 
-        self.enemy_list.update()
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
+            self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+            self.scene.add_sprite("enemy_fore", enemy)
 
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
@@ -121,17 +149,26 @@ class Game(arcade.View):
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
+            if self.player in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").remove(self.player)
 
+        elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
+            0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
+            self.scene.get_sprite_list("player_back").append(self.player)
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
 
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
+            if self.player in self.scene.get_sprite_list("player_fore"):
+                self.scene.get_sprite_list("player_fore").remove(self.player)
 
         # Update enemies z-index:
         for enemy in self.enemy_list:
-            # Get closest wall to the enemy
+            # get closest wall to enemy
+            self.physics_engine.set_velocity(enemy, (enemy.change_x, enemy.change_y))
+
             e_wall = arcade.get_closest_sprite(enemy, self.wall_list)
 
             # find bottom point of sprites for later
@@ -161,30 +198,57 @@ class Game(arcade.View):
                 else:
                     self.scene.get_sprite_list("enemy_back").append(enemy)
 
+        # Move the player
+        self.player.update()
+        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
+                                   self.player.center_y - SCREEN_HEIGHT / 2)
+        self.camera.move(cam_loc)
+
+        self.physics_engine.step()
+
+
     def on_key_press(self, key, modifiers):
         # If the player presses a key, update the speed
+
+        self.keys_pressed.add(key)
+    
+        # Check key combinations to determine direction
+        self.update_movement()
+
+        # Handle special key (ESC) to pause the game
         if key == arcade.key.ESCAPE:
             pause_view = EscView(self, go_back_to_menu)
             self.window.show_view(pause_view)
 
-        elif key == arcade.key.UP or key == arcade.key.W:
-            self.player.change_y = MOVEMENT_SPEED
-
-        elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.player.change_y = -MOVEMENT_SPEED
-
-        elif key == arcade.key.LEFT or key == arcade.key.A:
-            self.player.change_x = -MOVEMENT_SPEED
-
-        elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.player.change_x = MOVEMENT_SPEED
-
     def on_key_release(self, key, modifiers):
-        if key == arcade.key.UP or key == arcade.key.DOWN or key == arcade.key.W or key == arcade.key.S:
-            self.player.change_y = 0
 
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT or key == arcade.key.A or key == arcade.key.D:
-            self.player.change_x = 0
+        """Called when the user releases a key. """
+
+        # remove that key from our set to update movement
+        if key in self.keys_pressed:
+            self.keys_pressed.remove(key)
+
+        # update movement
+        self.update_movement()
+
+    def update_movement(self):
+        '''function that will update users movement'''
+        vec_vel = [0, 0]
+
+        # key press checks
+        if arcade.key.UP in self.keys_pressed or arcade.key.W in self.keys_pressed:
+            vec_vel[1] = MOVEMENT_SPEED
+        elif arcade.key.DOWN in self.keys_pressed or arcade.key.S in self.keys_pressed:
+            vec_vel[1] = -MOVEMENT_SPEED
+
+        if arcade.key.LEFT in self.keys_pressed or arcade.key.A in self.keys_pressed:
+            vec_vel[0] = -MOVEMENT_SPEED
+        elif arcade.key.RIGHT in self.keys_pressed or arcade.key.D in self.keys_pressed:
+            vec_vel[0] = MOVEMENT_SPEED
+
+        # update velocity and physics engine
+        updated_vel = self.player.update_velocity(vec_vel)
+        self.physics_engine.set_velocity(self.player, updated_vel)
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         self.player.is_attacking = True
