@@ -4,7 +4,7 @@ import math
 import arcade
 import pymunk
 import pyglet
-from world import World
+from world import World, ROOM_SIZE
 from player import Player
 from enemy import Enemy
 from menu import MenuView, GuideView, EscView, DeathView
@@ -12,6 +12,8 @@ from menu import MenuView, GuideView, EscView, DeathView
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
+
+FLOOR_TILE_SIZE = 80
 
 MOVEMENT_SPEED = 350
 ENEMY_SPAWN_INTERVAL = 5
@@ -26,7 +28,7 @@ class Game(arcade.View):
         # Call the parent class initializer
         super().__init__()
 
-        self.background = arcade.load_texture("grass.jfif")
+        self.background = arcade.load_texture("floor.png")
 
         self.physics_engine = None
         self.width = SCREEN_WIDTH
@@ -88,18 +90,23 @@ class Game(arcade.View):
         # Render the screen
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
+                                            self.background)
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
+                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                                            self.background)
 
         # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
         for i in range(len(self.world.rooms)):
             for j in range(len(self.world.rooms[i])):
                 room = self.world.rooms[i][j]
                 if (room.indoor):
-                    arcade.draw_rectangle_filled(room.x, room.y, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+                    arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         self.player.draw()
         self.scene.draw()
+        self.world.wall_list.draw()
 
         self.player.draw_hit_box((1,0,0))
         for i in self.enemy_list:
@@ -113,7 +120,6 @@ class Game(arcade.View):
                 # show death view
                 death_view = DeathView(self, go_back_to_menu)
                 self.window.show_view(death_view)
-
 
     def on_update(self, delta_time):
         """ Movement and game logic """
