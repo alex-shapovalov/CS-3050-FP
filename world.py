@@ -53,8 +53,15 @@ DOOR_CHANCE = 0.75
 def create_y_pos_comparison(sprite):
     return sprite.position[1]
 
-def create_hitbox(width,height) -> list[list]:
-    return [[-width/2, -height/2], [width/2, -height/2], [width/2, -height/4], [-width/2, -height/4]]
+def create_hori_hitbox(width,height):
+    return [[-width/2, -height/2], [width/2, -height/2], [width/2, 0], [-width/2, 0]]
+def create_verti_hitbox(width,height):
+    return [[-width/2, -height/2], [width/2, -height/2], [width/2, height/8], [-width/2, height/8]]
+def create_verti_fullh_hitbox(width,height):
+    return [[-width / 2, -height / 2], [width / 2, -height / 2], [width / 2, height / 2], [-width / 2, height/2]]
+# def create_verti_door_hitbox(width,height):
+#     return [[-width / 2, -height/ 8], [width / 2, -height / 2], [width / 2, height / 8], [-width / 2, height / 8]]
+
 
 class World(arcade.Window):
     
@@ -66,6 +73,8 @@ class World(arcade.Window):
         self.player_list = None
 
         self.wall_list = arcade.SpriteList(use_spatial_hash = True)
+        self.wall_front_list = arcade.SpriteList(use_spatial_hash = True)
+        self.wall_back_list = arcade.SpriteList(use_spatial_hash=True)
 
         #
         # # Set up the player info
@@ -131,7 +140,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 0 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                         curr_width = 1 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_hori.png",
@@ -140,7 +149,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 8 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                     # north
                     if i == WORLD_SIZE-1:
@@ -151,7 +160,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 0 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 8.5 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
                         self.wall_list.append(self.wall_sprite)
                         curr_width = 1 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_hori.png",
@@ -161,7 +170,7 @@ class World(arcade.Window):
                                                          center_x=int(x + 8 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(
                                                              y + 8.5 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                     # west
                     if j == 0:
@@ -172,8 +181,8 @@ class World(arcade.Window):
                                                          image_height=curr_height,
                                                          center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
                                                          center_y=int(y + 0.5 * curr_height),hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
                     # east
                     if j == WORLD_SIZE-1:
                         curr_height = 11 * FLOOR_TILE_SIZE
@@ -183,8 +192,8 @@ class World(arcade.Window):
                                                          image_height=curr_height,
                                                          center_x=int(x + 17.5 * VERTI_WALL_WIDTH),
                                                          center_y=int(y + 0.5 * curr_height),hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
 
                 # For indoor rooms, create the walls based on where doors are
                 elif self.rooms[i][j].indoor:
@@ -197,7 +206,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x= int((x + 0.5 * FLOOR_TILE_SIZE) + (1/2)*curr_width),
                                                          center_y= int(y + 0 * FLOOR_TILE_SIZE + (1/2)*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[0,0],[0,0]]
+                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
                         self.wall_list.append(self.wall_sprite)
                         self.wall_sprite = arcade.Sprite("wall_hori_3.png",
                                                          scale=WALL_SCALE,
@@ -205,7 +214,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 5.5 * FLOOR_TILE_SIZE + (1/2)*curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + (1/2)*HORI_WALL_HEIGHT),hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[0,0],[0,0]]
+                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
                         self.wall_list.append(self.wall_sprite)
                     else:
                         curr_width = 8 * FLOOR_TILE_SIZE
@@ -215,7 +224,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 0.5 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
                         self.wall_list.append(self.wall_sprite)
                     # north
                     if self.rooms[i][j].north:
@@ -226,7 +235,7 @@ class World(arcade.Window):
                                                          image_height = HORI_WALL_HEIGHT,
                                                          center_x = int(x+0.5*FLOOR_TILE_SIZE + 0.5*curr_width),
                                                          center_y = int(y+8.5*FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT),hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                         self.wall_sprite = arcade.Sprite("wall_hori_3.png",
                                                          scale = WALL_SCALE,
@@ -234,7 +243,7 @@ class World(arcade.Window):
                                                          image_height = HORI_WALL_HEIGHT,
                                                          center_x = int(x + 5.5 * FLOOR_TILE_SIZE + 0.5*curr_width),
                                                          center_y = int(y + 8.5 * FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                     else:
                         curr_width = 8 * FLOOR_TILE_SIZE
@@ -244,20 +253,20 @@ class World(arcade.Window):
                                                          image_height = HORI_WALL_HEIGHT,
                                                          center_x = int(x + 0.5 * FLOOR_TILE_SIZE + 0.5*curr_width),
                                                          center_y = int(y + 8.5 * FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
 
                     # west
                     if self.rooms[i][j].west:
                         curr_height = 5.5 * FLOOR_TILE_SIZE
-                        self.wall_sprite = arcade.Sprite("wall_verti_3.5.png",
+                        self.wall_sprite = arcade.Sprite("wall_verti_3.5_lower.png",
                                                          scale=WALL_SCALE,
                                                          image_width=VERTI_WALL_WIDTH,
                                                          image_height=5.5 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5*VERTI_WALL_WIDTH),
                                                          center_y=int(y + 0.5*curr_height), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
 
                         #TODO Add to seperate sprite list for drawing z-index - always be behind player:
                         self.wall_sprite = arcade.Sprite("wall_verti_3.5.png",
@@ -266,8 +275,8 @@ class World(arcade.Window):
                                                          image_height=5.5 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
                                                          center_y=int(y + 0.5 * curr_height + 5.5 * FLOOR_TILE_SIZE), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_back_list.append(self.wall_sprite)
                     else:
                         curr_height = 11 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_verti_9.png",
@@ -276,28 +285,28 @@ class World(arcade.Window):
                                                          image_height=11 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
                                                          center_y=int(y + 0.5 * curr_height), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[-self.wall_sprite.width/2, -self.wall_sprite.height/2], [self.wall_sprite.width/2, -self.wall_sprite.height/2], [self.wall_sprite.width/2, self.wall_sprite.height/2], [-self.wall_sprite.width/2, self.wall_sprite.height/2]]
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
 
                     # east
                     if self.rooms[i][j].east:
                         curr_height = 5.5 * FLOOR_TILE_SIZE
-                        self.wall_sprite = arcade.Sprite("wall_verti_3.5.png",
+                        self.wall_sprite = arcade.Sprite("wall_verti_3.5_lower.png",
                                                          scale=WALL_SCALE,
                                                          image_width=VERTI_WALL_WIDTH,
                                                          image_height=5.5 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5*VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
                                                          center_y=int(y + 0.5*curr_height), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
                         self.wall_sprite = arcade.Sprite("wall_verti_3.5.png",
                                                          scale=WALL_SCALE,
                                                          image_width=VERTI_WALL_WIDTH,
                                                          image_height=5.5 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5*VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
                                                          center_y=int(y + 0.5*curr_height + 5.5 * FLOOR_TILE_SIZE), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = create_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_back_list.append(self.wall_sprite)
                     else:
                         curr_height = 11 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_verti_9.png",
@@ -306,8 +315,8 @@ class World(arcade.Window):
                                                          image_height=11 * FLOOR_TILE_SIZE,
                                                          center_x=int(x + 0.5 * VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
                                                          center_y=int(y + 0.5 * curr_height), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[-self.wall_sprite.width/2, -self.wall_sprite.height/2], [self.wall_sprite.width/2, -self.wall_sprite.height/2], [self.wall_sprite.width/2, self.wall_sprite.height/2], [-self.wall_sprite.width/2, self.wall_sprite.height/2]]
-                        self.wall_list.append(self.wall_sprite)
+                        self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                        self.wall_front_list.append(self.wall_sprite)
 
 
         # sort sprite list by y coordinate, so they will be drawn in the correct order

@@ -73,7 +73,9 @@ class Game(arcade.View):
 
         # wall.set_hit_box(wall_hb)
         # self.wall_list.append(wall)
-        self.scene.add_sprite_list_after("wall", "enemy_mid_b", False, self.world.wall_list)
+        self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
+        self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
+        self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
 
         # Set up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -85,6 +87,8 @@ class Game(arcade.View):
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
         self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
+        self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
+        self.physics_engine.add_sprite_list(self.world.wall_back_list, body_type=1, collision_type="wall")
 
     def on_draw(self):
         # Render the screen
@@ -108,12 +112,8 @@ class Game(arcade.View):
         self.scene.draw()
         # self.world.wall_list.draw()
 
-        self.player.draw_hit_box((1,0,0))
-        for i in self.enemy_list:
-            i.draw_hit_box((1,0,0))
 
-        for i in self.world.wall_list:
-            arcade.draw_polygon_outline(i.get_adjusted_hit_box(), arcade.color.RED, 2)
+
 
         if self.player.damaged:
             if self.player.health <= 0:
@@ -149,18 +149,11 @@ class Game(arcade.View):
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
-            if self.player in self.scene.get_sprite_list("player_back"):
-                self.scene.get_sprite_list("player_back").remove(self.player)
 
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
-        elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
-            0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
-            self.scene.get_sprite_list("player_back").append(self.player)
 
-            if self.player in self.scene.get_sprite_list("player_fore"):
-                self.scene.get_sprite_list("player_fore").remove(self.player)
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
 
