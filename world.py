@@ -15,6 +15,7 @@ import arcade
 import datetime
 import random
 
+import pyglet.math
 from arcade.examples.array_backed_grid import SCREEN_WIDTH
 from perlin_noise import PerlinNoise
 from room import Room
@@ -321,6 +322,18 @@ class World(arcade.Window):
 
         # sort sprite list by y coordinate, so they will be drawn in the correct order
         self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
+
+    def find_room(self, vec2_pos: pyglet.math.Vec2):
+        room: Room
+        curr_room = None
+        for room_r in self.rooms:
+            for room in room_r:
+                right = room.x + ROOM_SIZE
+                top = room.y + ROOM_SIZE
+                if room.x < vec2_pos.x < right and room.y < vec2_pos.y < top:
+                    return room
+
+        return None
 
 
     def setup(self):
