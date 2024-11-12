@@ -71,14 +71,14 @@ class Player(arcade.Sprite):
         self.walking_texture_pair = load_texture_pair(f"player.png")
         self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
 
-
         self.curr_texture = 0
         self.attack_animation = []
         for i in range(3):
             filename = f'player_anim_frames/player-f{i+1}.png'
             texture = load_texture_pair(filename)
             self.attack_animation.append(texture)
-        
+
+
 
     def update_velocity(self, vel):
         if vel[0] != -1:

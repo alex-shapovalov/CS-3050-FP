@@ -82,6 +82,8 @@ class Game(arcade.View):
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
+        self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
+
         self.scene.add_sprite("player_fore", self.player)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
@@ -110,6 +112,9 @@ class Game(arcade.View):
 
         self.player.draw()
         self.scene.draw()
+
+        for enemy in self.enemy_list:
+            enemy.draw_hit_box()
         # self.world.wall_list.draw()
 
 
@@ -128,7 +133,7 @@ class Game(arcade.View):
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
             # Create a new enemy to spawn
-            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
             self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
@@ -137,7 +142,9 @@ class Game(arcade.View):
         # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
 
         # Update enemies
-        self.enemy_list.update()
+        enemy: Enemy
+        for enemy in self.enemy_list:
+            enemy.update(delta_time)
 
         # Get the closest wall to the player
         p_wall = arcade.get_closest_sprite(self.player, self.world.wall_list)
