@@ -57,11 +57,10 @@ def create_y_pos_comparison(sprite):
 def create_hori_hitbox(width,height):
     return [[-width/2, -height/2], [width/2, -height/2], [width/2, 0], [-width/2, 0]]
 def create_verti_hitbox(width,height):
-    return [[-width/2, -height/2], [width/2, -height/2], [width/2, height/8], [-width/2, height/8]]
+    return [[-width/2, -height/2], [width/2, -height/2], [width/2, 0], [-width/2, 0]]
 def create_verti_fullh_hitbox(width,height):
     return [[-width / 2, -height / 2], [width / 2, -height / 2], [width / 2, height / 2], [-width / 2, height/2]]
-# def create_verti_door_hitbox(width,height):
-#     return [[-width / 2, -height/ 8], [width / 2, -height / 2], [width / 2, height / 8], [-width / 2, height / 8]]
+
 
 
 class World(arcade.Window):

@@ -10,12 +10,15 @@ ENEMY_SPEED = 250
 PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 150
 COL_BUFFER = 5
-RAND_MOVE_TIME = 4
-CHANGE_MOVE_TIME = 8
+RAND_MOVE_TIME = 2
+CHANGE_MOVE_TIME = 4
+TARGET_DOOR_BUFFER = 20
+STUCK_TIME = 8
 
 TARGETS = {
-    "player": 2,
-    "door": 1,
+    "player": 3,
+    "door": 2,
+    "center": 1,
     "wander": 0
 }
 
@@ -39,6 +42,7 @@ class Enemy(arcade.Sprite):
         self.move_time = 0
         self.room = world.find_room(pyglet.math.Vec2(self.center_x, self.center_y))
         self.wait_until_room = False
+        self.next_center_loc = None
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -74,44 +78,59 @@ class Enemy(arcade.Sprite):
 
         player_room = self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
 
-        if self.target == None or (self.room != player_room and self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
+        if self.wait_until_room and self.move_time > STUCK_TIME:
+            self.wait_until_room = False
+
+        if self.target is None or (self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
+            self.next_center_loc = None
             # Have enemy randomly choose how to walk: 1->pick a door to go through | 2->randomly move in the room
             choice = random.randint(1, 4)
             if choice == 1:
                 doors = []
+                next_room_center = []
+                # Check to see what doors the current room has:
+                # Each if stores the doors location and the center of the room on the other side
                 if self.room.north:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size - TARGET_DOOR_BUFFER)
+                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                                            self.room.y + self.room.size + self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.south:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + TARGET_DOOR_BUFFER*2)
+                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                                            self.room.y - self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.east:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size, self.room.y + self.room.size / 2)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER*2, self.room.y + self.room.size / 2)
+                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2,
+                                                            self.room.y + self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.west:
-                    door_loc = pyglet.math.Vec2(self.room.x, self.room.y + self.room.size / 2)
+                    door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER*2, self.room.y + self.room.size / 2)
+                    next_room_center.append(pyglet.math.Vec2(self.room.x - self.room.size/2, self.room.y + self.room.size / 2))
                     doors.append(door_loc)
 
-                door_choice = random.choice(doors)
+                room_choice = random.randint(0, len(doors) - 1)
+                door_choice = doors[room_choice]
+                self.next_center_loc = next_room_center[room_choice]
+
 
                 self.target = door_choice
                 self.target_type = TARGETS["door"]
                 self.wait_until_room = True
 
             else:
-                self.target = pyglet.math.Vec2(random.randint(self.room.x, self.room.x + self.room.size),
-                                               random.randint(self.room.y, self.room.y + self.room.size))
+                self.target = pyglet.math.Vec2(random.randint(self.room.x+80, self.room.x + self.room.size-80),
+                                               random.randint(self.room.y+80, self.room.y + self.room.size-80))
                 self.target_type = TARGETS["wander"]
 
-            self.move_time = 0
-        elif self.room == player_room:
-            # self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
-            # self.target_type = TARGETS["player"]
-            pass
 
-        elif self.move_time / 2 >= RAND_MOVE_TIME and self.target_type == TARGETS["wander"]:
-            self.target = pyglet.math.Vec2(random.randint(self.room.x, self.room.x + self.room.size), random.randint(self.room.y, self.room.y + self.room.size))
-            self.target_type = TARGETS["wander"]
+            # elif self.room == player_room:
+            #     # self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
+            #     # self.target_type = TARGETS["player"]
+            #     pass
+            self.move_time = 0
+
 
         self.calculate_distance()
 
@@ -122,42 +141,46 @@ class Enemy(arcade.Sprite):
         self.change_x = 0
         self.change_y = 0
 
-
         # If enemy distance is further than player padding
-        if self.distance > 0.1:
+        if self.distance > 20:
             # Enemy moves towards the target
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
 
-        elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
-            # Invincibility frames
-            self.player.player_receive_damage(self.damage)
+        elif self.distance <= 20 and self.target_type == TARGETS["door"]:
+            self.target = self.next_center_loc
+            self.target_type = TARGETS["center"]
+            self.next_center_loc = None
 
-            # If player is walking towards an enemy
-            if ((self.player.change_x > 0 > x_diff) or
-                    (self.player.change_x < 0 < x_diff) or
-                    (self.player.change_y > 0 > y_diff) or
-                    (self.player.change_y < 0 < y_diff)):
-                # Push the enemy back if the player is moving towards them
-                self.change_x = math.cos(angle) * -PUSHBACK_SPEED
-                self.change_y = math.sin(angle) * -PUSHBACK_SPEED
-
-        # Checking for enemy overlaps
-        for enemy in self.enemy_list:
-            if enemy == self:
-                continue
-
-            self.calculate_distance()
-
-            # Keep enemies from overlapping
-            if self.distance < PLAYER_PADDING:
-                x_diff = enemy.center_x - self.center_x
-                y_diff = enemy.center_y - self.center_y
-                angle_away_from_enemy = math.atan2(y_diff, x_diff)
-
-                # Separate them at pushback_speed
-                self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
-                self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
+        # elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
+        #     # Invincibility frames
+        #     self.player.player_receive_damage(self.damage)
+        #
+        #     # If player is walking towards an enemy
+        #     if ((self.player.change_x > 0 > x_diff) or
+        #             (self.player.change_x < 0 < x_diff) or
+        #             (self.player.change_y > 0 > y_diff) or
+        #             (self.player.change_y < 0 < y_diff)):
+        #         # Push the enemy back if the player is moving towards them
+        #         self.change_x = math.cos(angle) * -PUSHBACK_SPEED
+        #         self.change_y = math.sin(angle) * -PUSHBACK_SPEED
+        #
+        # # Checking for enemy overlaps
+        # for enemy in self.enemy_list:
+        #     if enemy == self:
+        #         continue
+        #
+        #     self.calculate_distance()
+        #
+        #     # Keep enemies from overlapping
+        #     if self.distance < PLAYER_PADDING:
+        #         x_diff = enemy.center_x - self.center_x
+        #         y_diff = enemy.center_y - self.center_y
+        #         angle_away_from_enemy = math.atan2(y_diff, x_diff)
+        #
+        #         # Separate them at pushback_speed
+        #         self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
+        #         self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
 
         # Ensures that if the enemies collide with a wall then they won't continually try to run into it,
         # causing the enemy to go into the wall hitbbox
