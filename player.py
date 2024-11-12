@@ -6,6 +6,7 @@ import enemy
 
 PLAYER_PADDING = 150
 UPDATES_PER_FRAME = 5
+WALL_WIDTH = 79
 
 FACING_RIGHT = 0
 FACING_LEFT = 1
@@ -61,9 +62,7 @@ class Player(arcade.Sprite):
         self.damaged = False
         self.damaged_time = 0
 
-        
         self.is_attacking = False
-        self.last_attack_time = 0
 
         self.facing = FACING_RIGHT
 
@@ -71,13 +70,19 @@ class Player(arcade.Sprite):
         self.walking_texture_pair = load_texture_pair(f"player.png")
         self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
 
-        self.curr_texture = 0
+        self.attack_curr_texture = 0
         self.attack_animation = []
         for i in range(3):
             filename = f'player_anim_frames/player-f{i+1}.png'
             texture = load_texture_pair(filename)
             self.attack_animation.append(texture)
 
+        self.walk_curr_texture = 0
+        self.walking_animation = []
+        for i in range(4):
+            filename = f'player_walk_anim/player_walk-f{i+1}.png'
+            texture = load_texture_pair(filename)
+            self.walking_animation.append(texture)
 
 
     def update_velocity(self, vel):
@@ -93,27 +98,33 @@ class Player(arcade.Sprite):
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False
 
-        if self.change_x == 0 and self.change_y == 0 and not self.damaged:
-            self.texture = self.idle_texture_pair[self.facing]
-        else:
-            if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
-                self.facing = FACING_LEFT
-            elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
-                self.facing = FACING_RIGHT
-            elif self.change_x < 0:
-                self.facing = FACING_LEFT
-            elif self.change_x > 0:
-                self.facing = FACING_RIGHT
-
-            if not self.damaged:
-                self.texture = self.walking_texture_pair[self.facing]
-
         if self.is_attacking:
-            self.curr_texture += 0.35
-            if self.curr_texture >= len(self.attack_animation):
-                self.curr_texture = 0
+            self.attack_curr_texture += .5
+            if self.attack_curr_texture >= len(self.attack_animation):
+                self.attack_curr_texture = 0
                 self.is_attacking = False
-            self.texture = self.attack_animation[int(self.curr_texture)][self.facing] 
+            self.texture = self.attack_animation[int(self.attack_curr_texture)][self.facing]
+        else:
+            if self.change_x == 0 and self.change_y == 0 and not self.damaged:
+                self.texture = self.idle_texture_pair[self.facing]
+            else:
+                if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
+                    self.facing = FACING_LEFT
+                elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
+                    self.facing = FACING_RIGHT
+                elif self.change_x < 0:
+                    self.facing = FACING_LEFT
+                elif self.change_x > 0:
+                    self.facing = FACING_RIGHT
+
+                if not self.damaged:
+                    self.texture = self.walking_texture_pair[self.facing]
+
+                self.walk_curr_texture += 0.35
+                if self.walk_curr_texture >= len(self.walking_animation):
+                    self.walk_curr_texture = 0
+                    self.is_attacking = False
+                self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
 
     def player_receive_damage(self, amount):
         # Invincibility frames
@@ -122,7 +133,6 @@ class Player(arcade.Sprite):
             self.health -= amount
             self.damaged = True
             self.damaged_time = time.time()
-            print(f"Player received damage")
             if self.health <= 0:
                 self.kill()
         else:
@@ -131,5 +141,5 @@ class Player(arcade.Sprite):
     def player_give_damage(self, enemy_list):
         for enemy in enemy_list:
             enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
-            if enemy.distance <= PLAYER_PADDING + 250: # this if statement is subject to change
+            if enemy.distance <= WALL_WIDTH: # this if statement is subject to change
                 enemy.enemy_receive_damage()
