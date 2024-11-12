@@ -2,12 +2,14 @@
 import math
 
 import arcade
+import arcade.key
 import pymunk
 import pyglet
 from world import World, ROOM_SIZE
 from player import Player
 from enemy import Enemy
 from menu import MenuView, GuideView, EscView, DeathView
+import time
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -46,6 +48,8 @@ class Game(arcade.View):
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
+
+        self.last_attack_time = 0
 
     def cleanup(self):
         self.enemy_list = None
@@ -212,6 +216,11 @@ class Game(arcade.View):
         if key == arcade.key.ESCAPE:
             pause_view = EscView(self, go_back_to_menu)
             self.window.show_view(pause_view)
+        if key == arcade.key.H and time.time() - self.last_attack_time > 0.8:
+            self.last_attack_time = time.time()
+            self.player.is_attacking = True
+            self.player.player_give_damage(self.enemy_list)
+            
 
     def on_key_release(self, key, modifiers):
 
@@ -243,9 +252,9 @@ class Game(arcade.View):
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
 
-    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-        self.player.is_attacking = True
-        self.player.player_give_damage(enemy_list=self.enemy_list)
+    # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
+    #     self.player.is_attacking = True
+    #     self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
     # Create 'Game' window
