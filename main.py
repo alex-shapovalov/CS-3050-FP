@@ -87,6 +87,7 @@ class Game(arcade.View):
         self.player.center_y = SCREEN_HEIGHT / 2
 
         self.scene.add_sprite("player_fore", self.player)
+        self.scene.add_sprite("player_fore", self.player.axe)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
@@ -154,16 +155,20 @@ class Game(arcade.View):
         if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_fore"):
             self.scene.get_sprite_list("player_fore").append(self.player)
+            self.scene.get_sprite_list("player_fore").append(self.player.axe)
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
+                self.scene.get_sprite_list("player_back").remove(self.player.axe)
 
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
+            self.scene.get_sprite_list("player_back").append(self.player.axe)
 
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
+                self.scene.get_sprite_list("player_fore").remove(self.player.axe)
 
         # Update enemies z-index:
         for enemy in self.enemy_list:
@@ -200,12 +205,14 @@ class Game(arcade.View):
                     self.scene.get_sprite_list("enemy_back").append(enemy)
 
         # Move the player
+
         self.player.update()
         cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
                                    self.player.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)
 
         self.physics_engine.step()
+        self.player.axe.position = self.player.position
 
 
     def on_key_press(self, key, modifiers):
@@ -255,6 +262,7 @@ class Game(arcade.View):
         # update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
+
 
     # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
     #     self.player.is_attacking = True
