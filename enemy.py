@@ -170,35 +170,35 @@ class Enemy(arcade.Sprite):
         if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
             self.chase_time = 0
 
-        # elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
-        #     # Invincibility frames
-        #     self.player.player_receive_damage(self.damage)
-        #
-        #     # If player is walking towards an enemy
-        #     if ((self.player.change_x > 0 > x_diff) or
-        #             (self.player.change_x < 0 < x_diff) or
-        #             (self.player.change_y > 0 > y_diff) or
-        #             (self.player.change_y < 0 < y_diff)):
-        #         # Push the enemy back if the player is moving towards them
-        #         self.change_x = math.cos(angle) * -PUSHBACK_SPEED
-        #         self.change_y = math.sin(angle) * -PUSHBACK_SPEED
-        #
-        # # Checking for enemy overlaps
-        # for enemy in self.enemy_list:
-        #     if enemy == self:
-        #         continue
-        #
-        #     self.calculate_distance()
-        #
-        #     # Keep enemies from overlapping
-        #     if self.distance < PLAYER_PADDING:
-        #         x_diff = enemy.center_x - self.center_x
-        #         y_diff = enemy.center_y - self.center_y
-        #         angle_away_from_enemy = math.atan2(y_diff, x_diff)
-        #
-        #         # Separate them at pushback_speed
-        #         self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
-        #         self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
+        elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
+            # Invincibility frames
+            self.player.player_receive_damage(self.damage)
+
+            # If player is walking towards an enemy
+            if ((self.player.change_x > 0 > x_diff) or
+                    (self.player.change_x < 0 < x_diff) or
+                    (self.player.change_y > 0 > y_diff) or
+                    (self.player.change_y < 0 < y_diff)):
+                # Push the enemy back if the player is moving towards them
+                self.change_x = math.cos(angle) * -PUSHBACK_SPEED
+                self.change_y = math.sin(angle) * -PUSHBACK_SPEED
+
+        # Checking for enemy overlaps
+        for enemy in self.enemy_list:
+            if enemy == self:
+                continue
+
+            self.calculate_distance()
+
+            # Keep enemies from overlapping
+            if self.distance < PLAYER_PADDING:
+                x_diff = enemy.center_x - self.center_x
+                y_diff = enemy.center_y - self.center_y
+                angle_away_from_enemy = math.atan2(y_diff, x_diff)
+
+                # Separate them at pushback_speed
+                self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
+                self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
 
         # Ensures that if the enemies collide with a wall then they won't continually try to run into it,
         # causing the enemy to go into the wall hitbbox
