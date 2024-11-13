@@ -17,6 +17,9 @@ STUCK_TIME = 8
 MAX_CHASE_TIME = 1.5
 CHASE_RANGE = 100
 
+FACING_RIGHT = 0
+FACING_LEFT = 1
+
 TARGETS = {
     "player": 3,
     "door": 2,
@@ -24,6 +27,14 @@ TARGETS = {
     "wander": 0
 }
 
+def load_texture_pair(filename):
+        """
+        Load a texture pair, with the second being a mirror image.
+        """
+        return [
+            arcade.load_texture(filename),
+            arcade.load_texture(filename, flipped_horizontally=True)
+        ]
 
 class Enemy(arcade.Sprite):
     def __init__(self, player, player_damage, enemy_list, world, sprite_scaling, screen_width, screen_height,
@@ -74,6 +85,17 @@ class Enemy(arcade.Sprite):
             y = self.hitbox_height * math.sin(angle) - self.height
             hitbox.append((x, y))
         self.set_hit_box(hitbox)
+
+
+        self.idle_texture_pair = load_texture_pair(f"enemy.png")
+
+        self.facing = FACING_RIGHT
+        self.skeleton_walk_curr_texture = 0
+        self.walking_animation = []
+        for i in range(4):
+            filename = f'Skele_anim/skele_anim-f{i+1}.png'
+            texture = load_texture_pair(filename)
+            self.walking_animation.append(texture)
 
     def update(self, delta_time: float = 1 / 60):
 
@@ -223,6 +245,26 @@ class Enemy(arcade.Sprite):
             self.room = curr_room
             # This means we made it into the desired room
             self.wait_until_room = False
+
+        if self.change_x == 0 and self.change_y == 0:
+            self.texture = self.idle_texture_pair[self.facing]
+        else:
+            if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_LEFT
+            elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_RIGHT
+            elif self.change_x < 0:
+                self.facing = FACING_LEFT
+            elif self.change_x > 0:
+                self.facing = FACING_RIGHT
+
+            # walking animation code
+            self.skeleton_walk_curr_texture += delta_time*10
+            if self.skeleton_walk_curr_texture >= len(self.walking_animation):
+                self.skeleton_walk_curr_texture = 0
+                self.is_attacking = False
+            self.texture = self.walking_animation[int(self.skeleton_walk_curr_texture)][self.facing]
+
 
     def calculate_distance(self):
         self.distance = math.sqrt((self.target.x - self.center_x) ** 2 + (self.target.y - self.center_y) ** 2)
