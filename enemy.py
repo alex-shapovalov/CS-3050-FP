@@ -2,7 +2,6 @@ import arcade
 import random
 import math
 import time
-
 import pyglet.math
 
 SPRITE_SCALING = 0.5
@@ -20,12 +19,16 @@ CHASE_RANGE = 100
 FACING_RIGHT = 0
 FACING_LEFT = 1
 
+SKELETON = 1
+ZOMBIE = 2
+
 TARGETS = {
     "player": 3,
     "door": 2,
     "center": 1,
     "wander": 0
 }
+
 
 def load_texture_pair(filename):
         """
@@ -75,6 +78,8 @@ class Enemy(arcade.Sprite):
 
         # Determine which self.room we are in:
 
+        self.rand_num = random.randint(1, 3)
+
         hitbox = []
         self.hitbox_width = self.width
         self.hitbox_height = self.height / 3
@@ -87,15 +92,29 @@ class Enemy(arcade.Sprite):
         self.set_hit_box(hitbox)
 
 
-        self.idle_texture_pair = load_texture_pair(f"enemy.png")
-
         self.facing = FACING_RIGHT
-        self.skeleton_walk_curr_texture = 0
-        self.walking_animation = []
-        for i in range(4):
-            filename = f'Skele_anim/skele_anim-f{i+1}.png'
-            texture = load_texture_pair(filename)
-            self.walking_animation.append(texture)
+
+        if self.rand_num == SKELETON:
+            self.idle_texture_pair = load_texture_pair(f"enemy.png")
+
+            self.walk_curr_texture = 0
+            self.walking_animation = []
+            for i in range(4):
+                filename = f'Skele_anim/skele_anim-f{i+1}.png'
+                texture = load_texture_pair(filename)
+                self.walking_animation.append(texture)
+        elif self.rand_num == ZOMBIE:
+            self.idle_texture_pair = load_texture_pair(f"Zombie_anim/zomb_anim-f1.png")
+
+            self.walk_curr_texture = 0
+            self.walking_animation = []
+            for i in range(4):
+                filename = f'Zombie_anim/zomb_anim-f{i+1}.png'
+                texture = load_texture_pair(filename)
+                self.walking_animation.append(texture)
+        else:
+            self.idle_texture_pair = load_texture_pair(f"ghost.png")
+
 
     def update(self, delta_time: float = 1 / 60):
 
@@ -257,13 +276,15 @@ class Enemy(arcade.Sprite):
                 self.facing = FACING_LEFT
             elif self.change_x > 0:
                 self.facing = FACING_RIGHT
-
-            # walking animation code
-            self.skeleton_walk_curr_texture += delta_time*10
-            if self.skeleton_walk_curr_texture >= len(self.walking_animation):
-                self.skeleton_walk_curr_texture = 0
-                self.is_attacking = False
-            self.texture = self.walking_animation[int(self.skeleton_walk_curr_texture)][self.facing]
+            if self.rand_num == ZOMBIE or self.rand_num == SKELETON:
+                # walking animation code
+                self.walk_curr_texture += delta_time*10
+                if self.walk_curr_texture >= len(self.walking_animation):
+                    self.walk_curr_texture = 0
+                    self.is_attacking = False
+                self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
+            else:
+                self.texture = self.idle_texture_pair[self.facing]
 
 
     def calculate_distance(self):
