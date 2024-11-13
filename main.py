@@ -206,7 +206,7 @@ class Game(arcade.View):
 
         # Move the player
 
-        self.player.update()
+        self.player.on_update(delta_time)
         cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
                                    self.player.center_y - SCREEN_HEIGHT / 2)
         self.camera.move(cam_loc)

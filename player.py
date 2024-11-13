@@ -99,7 +99,7 @@ class Player(arcade.Sprite):
 
         return self.velocity
 
-    def update(self):
+    def on_update(self, delta_time):
         self.axe.visible = True
 
 
@@ -108,7 +108,7 @@ class Player(arcade.Sprite):
 
         if self.is_attacking:
             self.axe.visible = False
-            self.attack_curr_texture += .5
+            self.attack_curr_texture += delta_time * 20
             if self.attack_curr_texture >= len(self.attack_animation):
                 self.attack_curr_texture = 0
                 self.is_attacking = False
@@ -130,7 +130,7 @@ class Player(arcade.Sprite):
                 if not self.damaged:
                     self.texture = self.walking_texture_pair[self.facing]
 
-                self.walk_curr_texture += 0.35
+                self.walk_curr_texture += delta_time*10
                 if self.walk_curr_texture >= len(self.walking_animation):
                     self.walk_curr_texture = 0
                     self.is_attacking = False
