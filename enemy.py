@@ -15,7 +15,7 @@ CHANGE_MOVE_TIME = 4
 TARGET_DOOR_BUFFER = 20
 STUCK_TIME = 8
 MAX_CHASE_TIME = 1.5
-CHASE_RANGE = 20
+CHASE_RANGE = 100
 
 TARGETS = {
     "player": 3,
@@ -97,32 +97,8 @@ class Enemy(arcade.Sprite):
             # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
             choice = random.randint(1, 4)
             if choice == 1:
-                doors = []
-                next_room_center = []
-                # Check to see what doors the current room has:
-                # Each if stores the doors location and the center of the room on the other side
-                if self.room.north:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                self.room.y + self.room.size - TARGET_DOOR_BUFFER)
-                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                             self.room.y + self.room.size + self.room.size / 2))
-                    doors.append(door_loc)
-                if self.room.south:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + TARGET_DOOR_BUFFER * 2)
-                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                             self.room.y - self.room.size / 2))
-                    doors.append(door_loc)
-                if self.room.east:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2,
-                                                self.room.y + self.room.size / 2)
-                    next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2,
-                                                             self.room.y + self.room.size / 2))
-                    doors.append(door_loc)
-                if self.room.west:
-                    door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
-                    next_room_center.append(
-                        pyglet.math.Vec2(self.room.x - self.room.size / 2, self.room.y + self.room.size / 2))
-                    doors.append(door_loc)
+                # find the doors of the current room
+                doors, next_room_center = self.find_doors(False)
 
                 # Choose a random door
                 room_choice = random.randint(0, len(doors) - 1)
@@ -144,7 +120,28 @@ class Enemy(arcade.Sprite):
 
             self.move_time = 0
 
-        elif self.room == player_room or chasing:
+        elif self.room != player_room and chasing:
+            doors, next_room_center = self.find_doors(True)
+            choice = -1
+            if player_room.x - 5 <= self.room.x <= player_room.x + 5:
+                if player_room.y > self.room.y:
+                    choice = 0
+                else:
+                    choice = 1
+            else:
+                if player_room.x > self.room.x:
+                    choice = 2
+                else:
+                    choice = 3
+
+            self.target = doors[choice]
+            self.next_center_loc = next_room_center[choice]
+            self.target_type = TARGETS["door"]
+            self.wait_until_room = True
+
+            self.move_time = 0
+
+        elif self.room == player_room:
             # If we are in the room with the player go towards the player
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
@@ -229,6 +226,51 @@ class Enemy(arcade.Sprite):
 
     def calculate_distance(self):
         self.distance = math.sqrt((self.target.x - self.center_x) ** 2 + (self.target.y - self.center_y) ** 2)
+
+    def find_doors(self, isChase):
+        doors = []
+        next_room_center = []
+        # Check to see what doors the current room has:
+        # Each if stores the doors location and the center of the room on the other side
+        if self.room.north:
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                        self.room.y + self.room.size - TARGET_DOOR_BUFFER)
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                                     self.room.y + self.room.size + self.room.size / 2))
+            doors.append(door_loc)
+        elif isChase:
+            next_room_center.append(None)
+            doors.append(None)
+
+        if self.room.south:
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + TARGET_DOOR_BUFFER * 2)
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                                     self.room.y - self.room.size / 2))
+            doors.append(door_loc)
+        elif isChase:
+            next_room_center.append(None)
+            doors.append(None)
+
+        if self.room.east:
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2,
+                                        self.room.y + self.room.size / 2)
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2,
+                                                     self.room.y + self.room.size / 2))
+            doors.append(door_loc)
+        elif isChase:
+            next_room_center.append(None)
+            doors.append(None)
+
+        if self.room.west:
+            door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
+            next_room_center.append(
+                pyglet.math.Vec2(self.room.x - self.room.size / 2, self.room.y + self.room.size / 2))
+            doors.append(door_loc)
+        elif isChase:
+            next_room_center.append(None)
+            doors.append(None)
+
+        return doors, next_room_center
 
     def enemy_receive_damage(self):
         self.health -= self.player_damage

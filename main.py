@@ -112,7 +112,6 @@ class Game(arcade.View):
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
-        self.player.draw()
         self.scene.draw()
 
         for enemy in self.enemy_list:
