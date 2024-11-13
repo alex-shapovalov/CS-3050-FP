@@ -115,12 +115,6 @@ class Game(arcade.View):
 
         self.scene.draw()
 
-        for enemy in self.enemy_list:
-            enemy.draw_hit_box()
-        # self.world.wall_list.draw()
-
-
-
 
         if self.player.damaged:
             if self.player.health <= 0:

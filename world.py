@@ -224,7 +224,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 0.5 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                     # north
                     if self.rooms[i][j].north:

@@ -109,6 +109,7 @@ class Player(arcade.Sprite):
         if self.is_attacking:
             self.axe.visible = False
             self.attack_curr_texture += delta_time * 20
+            print("time: ", self.attack_curr_texture)
             if self.attack_curr_texture >= len(self.attack_animation):
                 self.attack_curr_texture = 0
                 self.is_attacking = False
