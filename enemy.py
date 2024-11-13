@@ -14,6 +14,8 @@ RAND_MOVE_TIME = 2
 CHANGE_MOVE_TIME = 4
 TARGET_DOOR_BUFFER = 20
 STUCK_TIME = 8
+MAX_CHASE_TIME = 1.5
+CHASE_RANGE = 20
 
 TARGETS = {
     "player": 3,
@@ -40,6 +42,7 @@ class Enemy(arcade.Sprite):
         self.target = None
         self.target_type = TARGETS["wander"]
         self.move_time = 0
+        self.chase_time = 0
         self.room = world.find_room(pyglet.math.Vec2(self.center_x, self.center_y))
         self.wait_until_room = False
         self.next_center_loc = None
@@ -75,15 +78,23 @@ class Enemy(arcade.Sprite):
     def update(self, delta_time: float = 1 / 60):
 
         self.move_time += delta_time
+        self.chase_time += delta_time
 
         player_room = self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
+        chasing = False
 
         if self.wait_until_room and self.move_time > STUCK_TIME:
             self.wait_until_room = False
 
-        if self.target is None or (self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
+        # Check if the enemy is in the same room, if not see if we are chasing hte player into another room
+        if self.room != player_room and self.chase_time <= MAX_CHASE_TIME and self.target_type == TARGETS["player"]:
+            chasing = True
+
+        # Determines if the enemy should follow the player or randomly move around the world
+        if self.target is None or (
+                not chasing and self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
             self.next_center_loc = None
-            # Have enemy randomly choose how to walk: 1->pick a door to go through | 2->randomly move in the room
+            # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
             choice = random.randint(1, 4)
             if choice == 1:
                 doors = []
@@ -91,46 +102,52 @@ class Enemy(arcade.Sprite):
                 # Check to see what doors the current room has:
                 # Each if stores the doors location and the center of the room on the other side
                 if self.room.north:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size - TARGET_DOOR_BUFFER)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2,
+                                                self.room.y + self.room.size - TARGET_DOOR_BUFFER)
                     next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                            self.room.y + self.room.size + self.room.size / 2))
+                                                             self.room.y + self.room.size + self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.south:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + TARGET_DOOR_BUFFER*2)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + TARGET_DOOR_BUFFER * 2)
                     next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                            self.room.y - self.room.size / 2))
+                                                             self.room.y - self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.east:
-                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER*2, self.room.y + self.room.size / 2)
+                    door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2,
+                                                self.room.y + self.room.size / 2)
                     next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2,
-                                                            self.room.y + self.room.size / 2))
+                                                             self.room.y + self.room.size / 2))
                     doors.append(door_loc)
                 if self.room.west:
-                    door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER*2, self.room.y + self.room.size / 2)
-                    next_room_center.append(pyglet.math.Vec2(self.room.x - self.room.size/2, self.room.y + self.room.size / 2))
+                    door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
+                    next_room_center.append(
+                        pyglet.math.Vec2(self.room.x - self.room.size / 2, self.room.y + self.room.size / 2))
                     doors.append(door_loc)
 
+                # Choose a random door
                 room_choice = random.randint(0, len(doors) - 1)
                 door_choice = doors[room_choice]
                 self.next_center_loc = next_room_center[room_choice]
 
-
+                # Update current target
                 self.target = door_choice
                 self.target_type = TARGETS["door"]
+
+                # Ensures we only change our target once we enter the new room
                 self.wait_until_room = True
 
             else:
-                self.target = pyglet.math.Vec2(random.randint(self.room.x+80, self.room.x + self.room.size-80),
-                                               random.randint(self.room.y+80, self.room.y + self.room.size-80))
+                # Picks a random point within our current room and sets our target to wander
+                self.target = pyglet.math.Vec2(random.randint(self.room.x + 80, self.room.x + self.room.size - 80),
+                                               random.randint(self.room.y + 80, self.room.y + self.room.size - 80))
                 self.target_type = TARGETS["wander"]
 
-
-            # elif self.room == player_room:
-            #     # self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
-            #     # self.target_type = TARGETS["player"]
-            #     pass
             self.move_time = 0
 
+        elif self.room == player_room or chasing:
+            # If we are in the room with the player go towards the player
+            self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
+            self.target_type = TARGETS["player"]
 
         self.calculate_distance()
 
@@ -151,6 +168,10 @@ class Enemy(arcade.Sprite):
             self.target = self.next_center_loc
             self.target_type = TARGETS["center"]
             self.next_center_loc = None
+
+        # If our target is player and we are still in range, reset chase timer
+        if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
+            self.chase_time = 0
 
         # elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
         #     # Invincibility frames

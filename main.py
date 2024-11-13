@@ -86,8 +86,6 @@ class Game(arcade.View):
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
-        self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
-
         self.scene.add_sprite("player_fore", self.player)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
