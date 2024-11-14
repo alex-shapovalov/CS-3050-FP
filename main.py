@@ -119,9 +119,6 @@ class Game(arcade.View):
             enemy.draw_hit_box()
         # self.world.wall_list.draw()
 
-
-
-
         if self.player.damaged:
             if self.player.health <= 0:
                 # show death view
@@ -155,19 +152,24 @@ class Game(arcade.View):
         if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_fore"):
             self.scene.get_sprite_list("player_fore").append(self.player)
-            self.scene.get_sprite_list("player_fore").append(self.player.axe)
+            if self.player.axe not in self.scene.get_sprite_list("player_fore"):
+                self.scene.get_sprite_list("player_fore").append(self.player.axe)
+
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
+            if self.player.axe in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player.axe)
 
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
-            self.scene.get_sprite_list("player_back").append(self.player.axe)
+            if self.player.axe not in self.scene.get_sprite_list("player_back"):
+                self.scene.get_sprite_list("player_back").append(self.player.axe)
 
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
+            if self.player.axe in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player.axe)
 
         # Update enemies z-index:
