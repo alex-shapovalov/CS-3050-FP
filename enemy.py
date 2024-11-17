@@ -7,7 +7,7 @@ import pyglet.math
 SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
 PUSHBACK_SPEED = ENEMY_SPEED / 2
-PLAYER_PADDING = 1
+PLAYER_PADDING = 50
 COL_BUFFER = 5
 RAND_MOVE_TIME = 2
 CHANGE_MOVE_TIME = 4
@@ -187,7 +187,7 @@ class Enemy(arcade.Sprite):
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
 
-        self.calculate_distance()
+        
 
         x_diff = self.target.x - self.center_x
         y_diff = self.target.y - self.center_y
@@ -195,17 +195,23 @@ class Enemy(arcade.Sprite):
 
         self.change_x = 0
         self.change_y = 0
-
+        self.calculate_distance()
         # If enemy distance is further than player padding
-        if self.distance > 20:
+        if self.distance <= PLAYER_PADDING and self.target_type == TARGETS["player"]:
+            self.change_x = 0
+            self.change_y = 0
+            self.player.player_receive_damage(self.damage)
+        elif self.distance > 20:
             # Enemy moves towards the target
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
-
         elif self.distance <= 20 and self.target_type == TARGETS["door"]:
             self.target = self.next_center_loc
             self.target_type = TARGETS["center"]
             self.next_center_loc = None
+        
+            
+
 
         # If our target is player and we are still in range, reset chase timer
         if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
