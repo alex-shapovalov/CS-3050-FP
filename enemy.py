@@ -288,7 +288,6 @@ class Enemy(arcade.Sprite):
         if self.health <= 0:
             self.kill()
             self.player.score += 1
-            # TODO: Add some sort of death effect / blood
 
     def enemy_give_damage(self):
         """ Gives damage from an enemy to the player """
