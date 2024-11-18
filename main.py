@@ -48,12 +48,14 @@ class Game(arcade.View):
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
+        self.floor_list = arcade.SpriteList()
 
         self.last_attack_time = 0
 
     def cleanup(self):
         self.enemy_list = None
         self.player = None
+        self.floor_list = None
         self.wall_list = None
         self.scene = None
         self.world = None
@@ -62,6 +64,9 @@ class Game(arcade.View):
     def setup(self):
         # Setting up the game itself
         self.world.setup()
+
+        # Set up floors
+        self.scene.add_sprite_list("floor_list")
 
         # Setting up wall interactions
 
@@ -80,6 +85,7 @@ class Game(arcade.View):
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
         self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
+        self.scene.add_sprite_list_before("floor_list", "wall_back", True, self.world.floor_list)
 
         # Set up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -107,14 +113,13 @@ class Game(arcade.View):
                                             self.background)
 
         # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
-        for i in range(len(self.world.rooms)):
-            for j in range(len(self.world.rooms[i])):
-                room = self.world.rooms[i][j]
-                if (room.indoor):
-                    arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+        #for i in range(len(self.world.rooms)):
+        #    for j in range(len(self.world.rooms[i])):
+        #        room = self.world.rooms[i][j]
+        #        if (room.indoor):
+        #            arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         self.scene.draw()
-
 
         if self.player.damaged:
             if self.player.health <= 0:

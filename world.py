@@ -74,7 +74,8 @@ class World(arcade.Window):
 
         self.wall_list = arcade.SpriteList(use_spatial_hash = True)
         self.wall_front_list = arcade.SpriteList(use_spatial_hash = True)
-        self.wall_back_list = arcade.SpriteList(use_spatial_hash=True)
+        self.wall_back_list = arcade.SpriteList(use_spatial_hash = True)
+        self.floor_list = arcade.SpriteList(use_spatial_hash = True)
 
         #
         # # Set up the player info
@@ -317,6 +318,18 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+
+                    # Make the floors
+                    for k in range(9):
+                        for l in range(9):
+                            self.floor_sprite = arcade.Sprite("floor.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=FLOOR_TILE_SIZE,
+                                                         image_height=FLOOR_TILE_SIZE,
+                                                         center_x=int(x + k * FLOOR_TILE_SIZE),
+                                                         center_y=int(y + l * FLOOR_TILE_SIZE),
+                                                              )
+                            self.floor_list.append(self.floor_sprite)
 
 
         # sort sprite list by y coordinate, so they will be drawn in the correct order
