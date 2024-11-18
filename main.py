@@ -1,57 +1,55 @@
-# Base code from: https://api.arcade.academy/en/latest/examples/sprite_move_keyboard.html#sprite-move-keyboard
-import math
-
 import arcade
 import arcade.key
-import pymunk
 import pyglet
+import time
+import os
 from world import World, ROOM_SIZE
 from player import Player
 from enemy import Enemy
 from menu import MenuView, GuideView, EscView, DeathView
-import time
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Game"
-
 FLOOR_TILE_SIZE = 80
-
 MOVEMENT_SPEED = 350
 ENEMY_SPAWN_INTERVAL = 5
 SPRITE_SCALING = 0.5
 PLAYER_HEALTH = 100
 PLAYER_DAMAGE = 50
-
+ENEMY_HEALTH = 100
+ENEMY_DAMAGE = 10
 COLOR = arcade.color.AMAZON
 
+
 class Game(arcade.View):
+    """ Class which runs the entire game including menu switching, GUI, rendering, and enemy spawning """
     def __init__(self):
-        # Call the parent class initializer
         super().__init__()
 
+        # Base game vars
         self.background = arcade.load_texture("floor.png")
-
         self.physics_engine = None
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
         self.title = SCREEN_TITLE
         self.keys_pressed = set()
+        self.last_attack_time = 0
 
-        # Keeps track of enemy spawns
+        # Enemies vars
         self.enemy_list = arcade.SpriteList()
         self.time_since_last_spawn = 0
         self.spawn_time = ENEMY_SPAWN_INTERVAL
+        self.spawn_boss = True
 
-        # Keeps track of world
+        # World vars
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
 
-        self.last_attack_time = 0
-
     def cleanup(self):
+        """ Cleanup class on restart """
         self.enemy_list = None
         self.player = None
         self.wall_list = None
@@ -60,11 +58,10 @@ class Game(arcade.View):
         self.camera = None
 
     def setup(self):
-        # Setting up the game itself
+        """ Initialization class to setup the game """
         self.world.setup()
 
         # Setting up wall interactions
-
         self.scene.add_sprite_list("enemy_back")
         self.scene.add_sprite_list("player_back")
         self.scene.add_sprite_list("enemy_mid_b")
@@ -81,11 +78,12 @@ class Game(arcade.View):
         self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
 
-        # Set up the player
+        # Setting up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
+        # TODO: Organize this code
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
 
@@ -95,16 +93,55 @@ class Game(arcade.View):
         self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_back_list, body_type=1, collision_type="wall")
 
+    def draw_health_bar(self):
+        """ Draw the health bar for the player, always relative to the screen """
+        bar_width = 400
+        bar_height = 40
+        rect_width = bar_width / 100
+
+        # Get camera position to ensure consistent placement
+        cam_x, cam_y = self.camera.position
+        bar_x = cam_x + 20
+        bar_y = cam_y + SCREEN_HEIGHT - 50
+
+        # Draw 100 mini rectangles for health out of 100 (default health)
+        for i in range(100):
+            if i < self.player.health:
+                color = arcade.color.RED
+            else:
+                color = arcade.color.BLACK
+            x = bar_x + i * rect_width
+            arcade.draw_rectangle_filled(x + rect_width / 2, bar_y, rect_width, bar_height, color,)
+
+        arcade.draw_text(str(self.player.health) + " / 100", bar_x + 200, bar_y - 10, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
+
+    def draw_score(self):
+        """ Draw the score and highscore of the user """
+        cam_x, cam_y = self.camera.position
+        score_x = cam_x + SCREEN_WIDTH - 150
+        score_y = cam_y + SCREEN_HEIGHT - 50
+
+        if os.path.exists("highscore.txt"):
+            with open("highscore.txt", 'r') as file:
+                highscore = file.readline()
+                if highscore is None:
+                    highscore = 0
+        else:
+            highscore = 0
+
+        if self.player.score >= int(highscore):
+            with open("highscore.txt", 'w') as file:
+                file.write(str(self.player.score))
+
+        arcade.draw_text("Score: " + str(self.player.score), score_x, score_y - 10, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Highscore: " + str(highscore), score_x, score_y - 50, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
+
     def on_draw(self):
-        # Render the screen
+        """ Render the screen """
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0,
-                                            SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
-                                            self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0,
-                                            SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
-                                            self.background)
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.background)
+        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
 
         # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
         for i in range(len(self.world.rooms)):
@@ -115,15 +152,23 @@ class Game(arcade.View):
 
         self.scene.draw()
 
-        for enemy in self.enemy_list:
-            enemy.draw_hit_box()
         # self.world.wall_list.draw()
+
+        self.draw_health_bar()
+
+        self.draw_score()
+
+        for enemy in self.enemy_list:
+            enemy.draw_damage_texts()
 
         if self.player.damaged:
             if self.player.health <= 0:
-                # show death view
+                # Player is dead, show the death view and write down high score
                 death_view = DeathView(self, go_back_to_menu)
                 self.window.show_view(death_view)
+                file = open("highscore.txt", "w")
+                file.write(str(self.player.score))
+                file.close()
 
     def on_update(self, delta_time):
         """ Movement and game logic """
@@ -131,19 +176,26 @@ class Game(arcade.View):
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time:
+            # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
+            if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, self.wall_list, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
+                self.spawn_boss = False
             # Create a new enemy to spawn
-            enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+            else:
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+                self.spawn_boss = True
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
             self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
             self.scene.add_sprite("enemy_fore", enemy)
 
-        # TODO: Add code to spawn boss after time interval or after x amount of enemies killed
-
         # Update enemies
         enemy: Enemy
         for enemy in self.enemy_list:
             enemy.update(delta_time)
+
+        for enemy in self.enemy_list:
+            enemy.update_damage_texts()
 
         # Get the closest wall to the player
         p_wall = arcade.get_closest_sprite(self.player, self.world.wall_list)
@@ -207,10 +259,9 @@ class Game(arcade.View):
                     self.scene.get_sprite_list("enemy_back").append(enemy)
 
         # Move the player
-
         self.player.on_update(delta_time)
-        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2,
-                                   self.player.center_y - SCREEN_HEIGHT / 2)
+        cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2, self.player.center_y - SCREEN_HEIGHT / 2)
+
         self.camera.move(cam_loc)
 
         self.physics_engine.step()
@@ -218,8 +269,9 @@ class Game(arcade.View):
 
 
     def on_key_press(self, key, modifiers):
-        # If the player presses a key, update the speed
+        """ Controls key presses and input """
 
+        # If the player presses a key, update the speed
         self.keys_pressed.add(key)
     
         # Check key combinations to determine direction
@@ -236,10 +288,9 @@ class Game(arcade.View):
             
 
     def on_key_release(self, key, modifiers):
+        """Called when the user releases a key """
 
-        """Called when the user releases a key. """
-
-        # remove that key from our set to update movement
+        # Remove that key from our set to update movement
         if key in self.keys_pressed:
             self.keys_pressed.remove(key)
 
@@ -247,10 +298,10 @@ class Game(arcade.View):
         self.update_movement()
 
     def update_movement(self):
-        '''function that will update users movement'''
+        """ Function that will update users movement """
         vec_vel = [0, 0]
 
-        # key press checks
+        # Key press checks
         if arcade.key.UP in self.keys_pressed or arcade.key.W in self.keys_pressed:
             vec_vel[1] = MOVEMENT_SPEED
         elif arcade.key.DOWN in self.keys_pressed or arcade.key.S in self.keys_pressed:
@@ -261,32 +312,27 @@ class Game(arcade.View):
         elif arcade.key.RIGHT in self.keys_pressed or arcade.key.D in self.keys_pressed:
             vec_vel[0] = MOVEMENT_SPEED
 
-        # update velocity and physics engine
+        # Update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
 
-
-    # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-    #     self.player.is_attacking = True
-    #     self.player.player_give_damage(enemy_list=self.enemy_list)
-
 def start_game():
-    # Create 'Game' window
+    """ Creates the Game window """
     game_view = Game()
     game_view.setup()
     arcade.get_window().show_view(game_view)
 
 def show_guide():
-    # Show the guide view with and go back button
+    """ Shows the Guide window """
     guide_view = GuideView(go_back_to_menu)
     arcade.get_window().show_view(guide_view)
 
 def exit_game():
-    # Close the game
+    """ Exits the game """
     arcade.close_window()
 
 def go_back_to_menu():
-    # Go back to main menu
+    """ Returns to Main menu """
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.get_window().show_view(menu_view)
 
