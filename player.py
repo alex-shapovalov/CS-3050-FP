@@ -105,7 +105,9 @@ class Player(arcade.Sprite):
     def on_update(self, delta_time):
         self.axe.visible = True
 
-        self.room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
+        room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
+        if room != self.room:
+            self.room = room
 
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False

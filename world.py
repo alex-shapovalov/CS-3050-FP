@@ -346,6 +346,27 @@ class World(arcade.Window):
         # sort sprite list by y coordinate, so they will be drawn in the correct order
         self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
 
+    def get_adj_rooms(self, room: Room):
+        adj_rooms = []
+        for r in range(len(self.rooms)):
+            for c in range(len(self.rooms[r])):
+                if self.rooms[r][c] == room:
+                    # Add each adjacent room
+                    # North
+                    adj_rooms.append(self.rooms[r+1][c])
+                    # South
+                    adj_rooms.append(self.rooms[r-1][c])
+                    # East
+                    adj_rooms.append(self.rooms[r][c+1])
+                    # West
+                    adj_rooms.append(self.rooms[r][c-1])
+                    return adj_rooms
+
+        return None
+
+
+
+
     def find_room(self, vec2_pos: pyglet.math.Vec2):
         room: Room
         curr_room = None
