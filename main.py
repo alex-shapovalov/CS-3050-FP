@@ -178,11 +178,11 @@ class Game(arcade.View):
         if self.time_since_last_spawn > self.spawn_time:
             # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
             if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
-                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.wall_list, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, self.wall_list, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
                 self.spawn_boss = False
             # Create a new enemy to spawn
             else:
-                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, self.wall_list, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
                 self.spawn_boss = True
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0

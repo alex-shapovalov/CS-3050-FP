@@ -27,7 +27,7 @@ TARGETS = {
 
 class Enemy(arcade.Sprite):
     """ Class which handles enemy logic, movement, and damage """
-    def __init__(self, player, player_damage, enemy_list, wall_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
+    def __init__(self, player, player_damage, enemy_list, world, wall_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
         super().__init__(image, sprite_scaling)
         self.player = player
         self.player_damage = player_damage
