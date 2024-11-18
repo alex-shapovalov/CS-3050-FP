@@ -46,7 +46,7 @@ SEED = int(datetime.datetime.now().timestamp())
 # Every room with a noise value greater than INDOOR_CUTOFF will be an indoor room.
 # Must be between 0 and 1.
 # Recommend between 0.3 and 0.7.
-INDOOR_CUTOFF = 0.44
+INDOOR_CUTOFF = 0.51
 
 # The probablity that a given wall will have a door.
 DOOR_CHANCE = 0.75
@@ -83,15 +83,17 @@ class World(arcade.Window):
         # Set the background color
         arcade.set_background_color(color)
 
-        # Let's make some noise
-        world_noise = PerlinNoise(octaves=100, seed=int(SEED))
-
         # Create 2d array, to hold all the rooms
         rows, cols = (WORLD_SIZE, WORLD_SIZE)
         self.rooms = [[0 for i in range(rows)] for j in range(cols)]
+
+        # Let's make some noise
+        world_noise = PerlinNoise(octaves=WORLD_SIZE, seed=int(SEED))
+        noise_vals = [[((world_noise([i/2, j/2]) + 1 )/ 2) for j in range(cols)] for i in range(rows)]
+
         for i in range(rows):
             for j in range(cols):
-                indoor = (( world_noise.noise(coordinates = [i/rows,j/cols]) + 1 ) / 2) >= INDOOR_CUTOFF
+                indoor = noise_vals[i][j] <= INDOOR_CUTOFF
                 size = ROOM_SIZE
                 x = j * ROOM_SIZE - 0.5*ROOM_SIZE*WORLD_SIZE + 0.5*SCREEN_WIDTH
                 y = i * ROOM_SIZE - 0.5*ROOM_SIZE*WORLD_SIZE + 0.5*SCREEN_HEIGHT
