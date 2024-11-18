@@ -320,15 +320,25 @@ class World(arcade.Window):
                         self.wall_front_list.append(self.wall_sprite)
 
                     # Make the floors
-                    for k in range(9):
-                        for l in range(9):
+                    verti_offset = 0
+                    hori_offset = 0
+                    hori_range_reduction = 0
+                    verti_range_reduction = 0
+                    if i == 0:  # If we are on the south edge
+                        verti_offset = FLOOR_TILE_SIZE
+                        verti_range_reduction = 1
+                    if j == 0:  # If we are on the west edge
+                        hori_offset = FLOOR_TILE_SIZE
+                        hori_range_reduction = 1
+
+                    for k in range(9 - hori_range_reduction):
+                        for l in range(9 - verti_range_reduction):
                             self.floor_sprite = arcade.Sprite("floor.png",
                                                          scale=WALL_SCALE,
                                                          image_width=FLOOR_TILE_SIZE,
                                                          image_height=FLOOR_TILE_SIZE,
-                                                         center_x=int(x + k * FLOOR_TILE_SIZE),
-                                                         center_y=int(y + l * FLOOR_TILE_SIZE),
-                                                              )
+                                                         center_x=int(x + k * FLOOR_TILE_SIZE + hori_offset),
+                                                         center_y=int(y + l * FLOOR_TILE_SIZE + verti_offset)                                                              )
                             self.floor_list.append(self.floor_sprite)
 
 
