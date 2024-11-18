@@ -1,4 +1,5 @@
 import arcade
+import pymunk
 import arcade.key
 import pyglet
 import time
@@ -85,18 +86,29 @@ class Game(arcade.View):
         self.scene.add_sprite_list_before("floor_list", "wall_back", True, self.world.floor_list)
 
         # Setting up the player
-        self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
 
+        player_filter = pymunk.ShapeFilter(categories=0b1000, mask=0b0111)
+        wall_filter = pymunk.ShapeFilter(categories=0b0100, mask=0b1011)
+
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
         self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_back_list, body_type=1, collision_type="wall")
+
+        self.physics_engine.get_physics_object(self.player).shape.filter = player_filter
+        for wall in self.world.wall_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
+        for wall in self.world.wall_front_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
+        for wall in self.world.wall_back_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
 
     def draw_health_bar(self):
         """ Draw the health bar for the player, always relative to the screen """
@@ -164,6 +176,9 @@ class Game(arcade.View):
         self.draw_score()
 
         for enemy in self.enemy_list:
+            enemy.draw_hit_box()
+
+        for enemy in self.enemy_list:
             enemy.draw_damage_texts()
 
         if self.player.damaged:
@@ -191,7 +206,20 @@ class Game(arcade.View):
                 self.spawn_boss = True
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
-            self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+
+            if enemy.rand_num != 3:
+                enemy_filter = pymunk.ShapeFilter(categories=0b0010, mask=0b1101)
+                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                               collision_type="enemy")
+                self.physics_engine.get_physics_object(enemy).shape.filter = enemy_filter
+            else:
+                ghost_filter = pymunk.ShapeFilter(categories=0b0001, mask=0b1010)
+                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                               collision_type="ghost")
+                self.physics_engine.get_physics_object(enemy).shape.filter = ghost_filter
+
+
+            # self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
             self.scene.add_sprite("enemy_fore", enemy)
 
         # Update enemies

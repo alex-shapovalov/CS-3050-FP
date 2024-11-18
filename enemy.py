@@ -12,7 +12,7 @@ PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 50
 COL_BUFFER = 5
 RAND_MOVE_TIME = 2
-CHANGE_MOVE_TIME = 4
+CHANGE_MOVE_TIME = 8
 TARGET_DOOR_BUFFER = 20
 STUCK_TIME = 8
 MAX_CHASE_TIME = 1.5
@@ -23,6 +23,7 @@ FACING_LEFT = 1
 
 SKELETON = 1
 ZOMBIE = 2
+GHOST = 3
 
 TARGETS = {
     "player": 3,
@@ -122,76 +123,78 @@ class Enemy(arcade.Sprite):
 
     def update(self, delta_time: float = 1 / 60):
         """ Constantly re-calculates where the player is for following along with collisions and pushbacks """
-        self.move_time += delta_time
-        self.chase_time += delta_time
+        if self.rand_num != GHOST:
+            self.move_time += delta_time
+            self.chase_time += delta_time
 
-        player_room = self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
-        chasing = False
+            player_room = self.world.find_room(pyglet.math.Vec2(self.player.center_x, self.player.center_y))
+            chasing = False
 
-        if self.wait_until_room and self.move_time > STUCK_TIME:
-            self.wait_until_room = False
+            if self.wait_until_room and self.move_time > STUCK_TIME:
+                self.wait_until_room = False
 
-        # Check if the enemy is in the same room, if not see if we are chasing hte player into another room
-        if self.room != player_room and self.chase_time <= MAX_CHASE_TIME and self.target_type == TARGETS["player"]:
-            chasing = True
+            # Check if the enemy is in the same room, if not see if we are chasing hte player into another room
+            if self.room != player_room and self.chase_time <= MAX_CHASE_TIME and self.target_type == TARGETS["player"]:
+                chasing = True
 
-        # Determines if the enemy should follow the player or randomly move around the world
-        if self.target is None or (
-                not chasing and self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
-            self.next_center_loc = None
-            # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
-            choice = random.randint(1, 4)
-            if choice == 1:
-                # find the doors of the current room
-                doors, next_room_center = self.find_doors(False)
+            # Determines if the enemy should follow the player or randomly move around the world
+            if self.target is None or (
+                    not chasing and self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
+                # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
+                choice = random.randint(1, 4)
+                if choice == 1:
+                    # find the doors of the current room
+                    self.next_center_loc = None
+                    doors, next_room_center = self.find_doors(False)
 
-                # Choose a random door
-                room_choice = random.randint(0, len(doors) - 1)
-                door_choice = doors[room_choice]
-                self.next_center_loc = next_room_center[room_choice]
+                    # Choose a random door
+                    room_choice = random.randint(0, len(doors) - 1)
+                    door_choice = doors[room_choice]
+                    self.next_center_loc = next_room_center[room_choice]
 
-                # Update current target
-                self.target = door_choice
+                    # Update current target
+                    self.target = door_choice
+                    self.target_type = TARGETS["door"]
+
+                    # Ensures we only change our target once we enter the new room
+                    self.wait_until_room = True
+
+                else:
+                    # Picks a random point within our current room and sets our target to wander
+                    self.target = pyglet.math.Vec2(random.randint(self.room.x + 100, self.room.x + self.room.size - 100),
+                                                   random.randint(self.room.y + 100, self.room.y + self.room.size - 100))
+                    self.target_type = TARGETS["wander"]
+
+                self.move_time = 0
+
+            elif self.room != player_room and chasing:
+                doors, next_room_center = self.find_doors(True)
+                choice = -1
+                if player_room.x - 5 <= self.room.x <= player_room.x + 5:
+                    if player_room.y > self.room.y:
+                        choice = 0
+                    else:
+                        choice = 1
+                else:
+                    if player_room.x > self.room.x:
+                        choice = 2
+                    else:
+                        choice = 3
+
+                self.target = doors[choice]
+                self.next_center_loc = next_room_center[choice]
                 self.target_type = TARGETS["door"]
-
-                # Ensures we only change our target once we enter the new room
                 self.wait_until_room = True
 
-            else:
-                # Picks a random point within our current room and sets our target to wander
-                self.target = pyglet.math.Vec2(random.randint(self.room.x + 80, self.room.x + self.room.size - 80),
-                                               random.randint(self.room.y + 80, self.room.y + self.room.size - 80))
-                self.target_type = TARGETS["wander"]
+                self.move_time = 0
 
-            self.move_time = 0
-
-        elif self.room != player_room and chasing:
-            doors, next_room_center = self.find_doors(True)
-            choice = -1
-            if player_room.x - 5 <= self.room.x <= player_room.x + 5:
-                if player_room.y > self.room.y:
-                    choice = 0
-                else:
-                    choice = 1
-            else:
-                if player_room.x > self.room.x:
-                    choice = 2
-                else:
-                    choice = 3
-
-            self.target = doors[choice]
-            self.next_center_loc = next_room_center[choice]
-            self.target_type = TARGETS["door"]
-            self.wait_until_room = True
-
-            self.move_time = 0
-
-        elif self.room == player_room:
-            # If we are in the room with the player go towards the player
+            elif self.room == player_room:
+                # # If we are in the room with the player go towards the player
+                self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
+                self.target_type = TARGETS["player"]
+        else:
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
-
-        
 
         x_diff = self.target.x - self.center_x
         y_diff = self.target.y - self.center_y
@@ -201,11 +204,12 @@ class Enemy(arcade.Sprite):
         self.change_y = 0
         self.calculate_distance()
         # If enemy distance is further than player padding
-        if self.distance <= PLAYER_PADDING and self.target_type == TARGETS["player"]:
-            self.change_x = 0
-            self.change_y = 0
-            self.player.player_receive_damage(self.damage)
-        elif self.distance > 20:
+        # if self.distance <= PLAYER_PADDING and self.target_type == TARGETS["player"]:
+        #     self.change_x = 0
+        #     self.change_y = 0
+        #     self.player.player_receive_damage(self.damage)
+        # el
+        if self.distance > 20:
             # Enemy moves towards the target
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
@@ -213,7 +217,6 @@ class Enemy(arcade.Sprite):
             self.target = self.next_center_loc
             self.target_type = TARGETS["center"]
             self.next_center_loc = None
-        
             
 
 
@@ -221,7 +224,7 @@ class Enemy(arcade.Sprite):
         if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
             self.chase_time = 0
 
-        elif self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
+        if self.distance < PLAYER_PADDING and self.target_type == TARGETS["player"]:
             # Invincibility frames
             self.player.player_receive_damage(self.damage)
 
@@ -253,20 +256,22 @@ class Enemy(arcade.Sprite):
 
         # Ensures that if the enemies collide with a wall then they won't continually
         # try to run into it, causing the enemy to go into the wall hitbbox
-        wall = (self.collides_with_list(self.world.wall_list) + self.collides_with_list(self.world.wall_front_list) +
-                self.collides_with_list(self.world.wall_back_list))
 
-        if wall:
-            # Checks every wall we are colliding with to make sure we cant run further in that direction
-            for w in wall:
-                if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER:
-                    if (w.center_y - w.height < self.center_y - self.height and self.change_y < 0) or (
-                            w.center_y - w.height > self.center_y - self.height and self.change_y > 0):
-                        self.change_y = 0
-                elif w.bottom + COL_BUFFER < self.center_y - self.height < w.top - COL_BUFFER:
-                    if (w.center_x - w.width < self.center_x + self.width and self.change_x < 0) or (
-                            w.center_x + w.width > self.center_x - self.width and self.change_x > 0):
-                        self.change_x = 0
+        if self.rand_num != GHOST:
+            wall = (self.collides_with_list(self.world.wall_list) + self.collides_with_list(self.world.wall_front_list) +
+                    self.collides_with_list(self.world.wall_back_list))
+
+            if wall:
+                # Checks every wall we are colliding with to make sure we cant run further in that direction
+                for w in wall:
+                    if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER:
+                        if (w.center_y - w.height < self.center_y - self.height and self.change_y < 0) or (
+                                w.center_y - w.height > self.center_y - self.height and self.change_y > 0):
+                            self.change_y = 0
+                    elif w.bottom + COL_BUFFER < self.center_y - self.height < w.top - COL_BUFFER:
+                        if (w.center_x - w.width < self.center_x + self.width and self.change_x < 0) or (
+                                w.center_x + w.width > self.center_x - self.width and self.change_x > 0):
+                            self.change_x = 0
 
         curr_room = self.world.find_room(pyglet.math.Vec2(self.center_x, self.center_y))
         if self.room != curr_room:
