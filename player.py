@@ -36,6 +36,7 @@ class Player(arcade.Sprite):
         # following values are subject to change
         self.health: int = health
         self.damage: int = damage
+        self.score = 0
 
         self.center_x = screen_width / 2
         self.center_y = screen_height / 2

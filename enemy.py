@@ -2,13 +2,14 @@ import arcade
 import random
 import math
 import time
+from damage import DamageText
 
 import pyglet.math
 
 SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
 PUSHBACK_SPEED = ENEMY_SPEED / 2
-PLAYER_PADDING = 1
+PLAYER_PADDING = 50
 COL_BUFFER = 5
 RAND_MOVE_TIME = 2
 CHANGE_MOVE_TIME = 4
@@ -16,6 +17,12 @@ TARGET_DOOR_BUFFER = 20
 STUCK_TIME = 8
 MAX_CHASE_TIME = 1.5
 CHASE_RANGE = 100
+
+FACING_RIGHT = 0
+FACING_LEFT = 1
+
+SKELETON = 1
+ZOMBIE = 2
 
 TARGETS = {
     "player": 3,
@@ -25,9 +32,18 @@ TARGETS = {
 }
 
 
+def load_texture_pair(filename):
+        """
+        Load a texture pair, with the second being a mirror image.
+        """
+        return [
+            arcade.load_texture(filename),
+            arcade.load_texture(filename, flipped_horizontally=True)
+        ]
+
 class Enemy(arcade.Sprite):
-    def __init__(self, player, player_damage, enemy_list, world, sprite_scaling, screen_width, screen_height,
-                 health=100, damage=10, attack_type="melee", image="enemy.png"):
+    """ Class which handles enemy logic, movement, and damage """
+    def __init__(self, player, player_damage, enemy_list, world, wall_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
         super().__init__(image, sprite_scaling)
         self.player = player
         self.player_damage = player_damage
@@ -39,6 +55,8 @@ class Enemy(arcade.Sprite):
         self.distance = None
         self.last_damage_time = 0
         self.collide = False
+        self.damage_text = []
+
         self.target = None
         self.target_type = TARGETS["wander"]
         self.move_time = 0
@@ -64,6 +82,8 @@ class Enemy(arcade.Sprite):
 
         # Determine which self.room we are in:
 
+        self.rand_num = random.randint(1, 3)
+
         hitbox = []
         self.hitbox_width = self.width
         self.hitbox_height = self.height / 3
@@ -75,8 +95,33 @@ class Enemy(arcade.Sprite):
             hitbox.append((x, y))
         self.set_hit_box(hitbox)
 
-    def update(self, delta_time: float = 1 / 60):
 
+        self.facing = FACING_RIGHT
+
+        if self.rand_num == SKELETON:
+            self.idle_texture_pair = load_texture_pair(f"enemy.png")
+
+            self.walk_curr_texture = 0
+            self.walking_animation = []
+            for i in range(4):
+                filename = f'Skele_anim/skele_anim-f{i+1}.png'
+                texture = load_texture_pair(filename)
+                self.walking_animation.append(texture)
+        elif self.rand_num == ZOMBIE:
+            self.idle_texture_pair = load_texture_pair(f"Zombie_anim/zomb_anim-f1.png")
+
+            self.walk_curr_texture = 0
+            self.walking_animation = []
+            for i in range(4):
+                filename = f'Zombie_anim/zomb_anim-f{i+1}.png'
+                texture = load_texture_pair(filename)
+                self.walking_animation.append(texture)
+        else:
+            self.idle_texture_pair = load_texture_pair(f"ghost.png")
+
+
+    def update(self, delta_time: float = 1 / 60):
+        """ Constantly re-calculates where the player is for following along with collisions and pushbacks """
         self.move_time += delta_time
         self.chase_time += delta_time
 
@@ -146,7 +191,7 @@ class Enemy(arcade.Sprite):
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
 
-        self.calculate_distance()
+        
 
         x_diff = self.target.x - self.center_x
         y_diff = self.target.y - self.center_y
@@ -154,17 +199,23 @@ class Enemy(arcade.Sprite):
 
         self.change_x = 0
         self.change_y = 0
-
+        self.calculate_distance()
         # If enemy distance is further than player padding
-        if self.distance > 20:
+        if self.distance <= PLAYER_PADDING and self.target_type == TARGETS["player"]:
+            self.change_x = 0
+            self.change_y = 0
+            self.player.player_receive_damage(self.damage)
+        elif self.distance > 20:
             # Enemy moves towards the target
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
-
         elif self.distance <= 20 and self.target_type == TARGETS["door"]:
             self.target = self.next_center_loc
             self.target_type = TARGETS["center"]
             self.next_center_loc = None
+        
+            
+
 
         # If our target is player and we are still in range, reset chase timer
         if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
@@ -200,15 +251,14 @@ class Enemy(arcade.Sprite):
                 self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
                 self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
 
-        # Ensures that if the enemies collide with a wall then they won't continually try to run into it,
-        # causing the enemy to go into the wall hitbbox
+        # Ensures that if the enemies collide with a wall then they won't continually
+        # try to run into it, causing the enemy to go into the wall hitbbox
         wall = (self.collides_with_list(self.world.wall_list) + self.collides_with_list(self.world.wall_front_list) +
                 self.collides_with_list(self.world.wall_back_list))
 
         if wall:
             # Checks every wall we are colliding with to make sure we cant run further in that direction
             for w in wall:
-
                 if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER:
                     if (w.center_y - w.height < self.center_y - self.height and self.change_y < 0) or (
                             w.center_y - w.height > self.center_y - self.height and self.change_y > 0):
@@ -224,7 +274,30 @@ class Enemy(arcade.Sprite):
             # This means we made it into the desired room
             self.wait_until_room = False
 
+        if self.change_x == 0 and self.change_y == 0:
+            self.texture = self.idle_texture_pair[self.facing]
+        else:
+            if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_LEFT
+            elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
+                self.facing = FACING_RIGHT
+            elif self.change_x < 0:
+                self.facing = FACING_LEFT
+            elif self.change_x > 0:
+                self.facing = FACING_RIGHT
+            if self.rand_num == ZOMBIE or self.rand_num == SKELETON:
+                # walking animation code
+                self.walk_curr_texture += delta_time*10
+                if self.walk_curr_texture >= len(self.walking_animation):
+                    self.walk_curr_texture = 0
+                    self.is_attacking = False
+                self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
+            else:
+                self.texture = self.idle_texture_pair[self.facing]
+
+
     def calculate_distance(self):
+        """ Calculates distance between enemy and player """
         self.distance = math.sqrt((self.target.x - self.center_x) ** 2 + (self.target.y - self.center_y) ** 2)
 
     def find_doors(self, isChase):
@@ -272,17 +345,25 @@ class Enemy(arcade.Sprite):
 
         return doors, next_room_center
 
+    def draw_damage_texts(self):
+        """ Draws damage texts on enemy hit """
+        for text in self.damage_text:
+            text.draw()
+
+    def update_damage_texts(self):
+        """ Removes expired texts from the list """
+        self.damage_text = [text for text in self.damage_text if text.update()]
+
     def enemy_receive_damage(self):
+        """ Gives damage to a hit enemy """
+        self.damage_text.append(DamageText(self.center_x, self.center_y, self.player_damage))
         self.health -= self.player_damage
         if self.health <= 0:
             self.kill()
-            # TODO: Add some sort of death effect / blood
+            self.player.score += 1
 
-    # TODO: Player takes self.damage damage, create player receive_damage class
     def enemy_give_damage(self):
+        """ Gives damage from an enemy to the player """
         if self.attack_type == "melee":
             # Player is damaged by contact
             self.player.player_receive_damage(self.damage)
-        elif self.attack_type == "ranged":
-            x = 0
-            # Player is damaged if projectile hits him

@@ -1,7 +1,10 @@
 # Base code from: https://api.arcade.academy/en/latest/examples/view_screens_minimal.html
 import arcade
+import os
+
 
 class MenuView(arcade.View):
+    """ Class that creates the Main menu view with Start, Guide, Exit, and Reset highscore options """
     def __init__(self, start_game, show_guide, exit_game, width, height):
         super().__init__()
         self.start_game = start_game
@@ -17,6 +20,7 @@ class MenuView(arcade.View):
         self.play_button_y = self.window.height / 2 + 50
         self.guide_button_y = self.window.height / 2 - 30
         self.exit_button_y = self.window.height / 2 - 110
+        self.highscore_button_y = self.window.height / 2 - 350
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.WHITE)
@@ -31,6 +35,9 @@ class MenuView(arcade.View):
 
         # Exit button
         arcade.draw_text("Exit", self.window.width / 2, self.exit_button_y, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
+
+        # High score reset button
+        arcade.draw_text("Reset highscore", self.window.width / 2, self.highscore_button_y, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
 
     def draw_background(self):
         # Load background texture
@@ -62,12 +69,12 @@ class MenuView(arcade.View):
         elif self.window.width / 2 - self.button_width / 2 < x < self.window.width / 2 + self.button_width / 2 and self.exit_button_y - self.button_height / 2 < y < self.exit_button_y + self.button_height / 2:
             self.exit_game()
 
-        # Image Citation:
-
-        # https://www.freepik.com/free-photo/weathered-page_4100652.htm#query=parchment%20texture&position=4&from_view=keyword&track=ais_hybrid&uuid=f987e52f-6313-4f80-a4d9-6d5986769fdf
-        # Image by rawpixel.com on Freepik
+        # Highscore button click
+        elif self.window.width / 2 - self.button_width / 2 < x < self.window.width / 2 + self.button_width / 2 and self.highscore_button_y - self.button_height / 2 < y < self.highscore_button_y + self.button_height / 2:
+            os.remove("highscore.txt")
 
 class GuideView(arcade.View):
+    """ Class that creates the Guide view for information about the game """
     def __init__(self, go_back):
         super().__init__()
         self.go_back = go_back
@@ -92,7 +99,7 @@ class GuideView(arcade.View):
         # Write out guide for the game
         arcade.draw_text("In this game, you must defend yourself against a horde of enemies.\n"
                          "Will you protect the land or just perish with the rest?\n"
-                         "Use W, A, S, D to move and click to attack.", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
+                         "Use W, A, S, D to move and H to attack.", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
 
         # Draw "Go Back" button
         arcade.draw_text("Go Back", self.window.width / 2, 100, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")
@@ -103,6 +110,7 @@ class GuideView(arcade.View):
             self.go_back()
 
 class EscView(arcade.View):
+    """ Class that creates view when user presses escape while in the game, can return to Main menu or Desktop """
     def __init__(self, game_view, go_to_menu):
         super().__init__()
         self.game_view = game_view
@@ -147,6 +155,7 @@ class EscView(arcade.View):
             self.go_to_menu()
 
 class DeathView(arcade.View):
+    """ Class that creates menu on player death to allow for main menu return """
     def __init__(self, game_view, go_to_menu):
         super().__init__()
         self.game_view = game_view
