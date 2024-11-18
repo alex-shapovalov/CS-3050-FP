@@ -71,6 +71,12 @@ class Player(arcade.Sprite):
         self.walking_texture_pair = load_texture_pair(f"player.png")
         self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
 
+        self.axe = arcade.Sprite(scale=sprite_scaling, hit_box_algorithm=None)
+        self.axe_texture = load_texture_pair("axe.png")
+        self.axe.texture = self.axe_texture[self.facing]
+        self.axe.position = self.position
+
+
         self.attack_curr_texture = 0
         self.attack_animation = []
         for i in range(3):
@@ -84,7 +90,7 @@ class Player(arcade.Sprite):
             filename = f'player_walk_anim/player_walk-f{i+1}.png'
             texture = load_texture_pair(filename)
             self.walking_animation.append(texture)
-        
+
 
     def update_velocity(self, vel):
         if vel[0] != -1:
@@ -93,19 +99,24 @@ class Player(arcade.Sprite):
             self.velocity[1] = vel[1]
 
         return self.velocity
-    
 
-    def update(self):
+    def on_update(self, delta_time):
+        self.axe.visible = True
+
+
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False
 
         if self.is_attacking:
-            self.attack_curr_texture += .5
+            self.axe.visible = False
+            self.attack_curr_texture += delta_time * 20
+            print("time: ", self.attack_curr_texture)
             if self.attack_curr_texture >= len(self.attack_animation):
                 self.attack_curr_texture = 0
                 self.is_attacking = False
-            self.texture = self.attack_animation[int(self.attack_curr_texture)][self.facing] 
+            self.texture = self.attack_animation[int(self.attack_curr_texture)][self.facing]
         else:
+            self.axe.texture = self.axe_texture[self.facing]
             if self.change_x == 0 and self.change_y == 0 and not self.damaged:
                 self.texture = self.idle_texture_pair[self.facing]
             else:
@@ -121,11 +132,11 @@ class Player(arcade.Sprite):
                 if not self.damaged:
                     self.texture = self.walking_texture_pair[self.facing]
 
-                self.walk_curr_texture += 0.35
+                self.walk_curr_texture += delta_time*10
                 if self.walk_curr_texture >= len(self.walking_animation):
                     self.walk_curr_texture = 0
                     self.is_attacking = False
-                self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing] 
+                self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
 
     def player_receive_damage(self, amount):
         # Invincibility frames

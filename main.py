@@ -85,6 +85,7 @@ class Game(arcade.View):
 
         # TODO: Organize this code
         self.scene.add_sprite("player_fore", self.player)
+        self.scene.add_sprite("player_fore", self.player.axe)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
@@ -149,8 +150,8 @@ class Game(arcade.View):
                 if (room.indoor):
                     arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
-        self.player.draw()
         self.scene.draw()
+
         # self.world.wall_list.draw()
 
         self.draw_health_bar()
@@ -189,7 +190,9 @@ class Game(arcade.View):
             self.scene.add_sprite("enemy_fore", enemy)
 
         # Update enemies
-        self.enemy_list.update()
+        enemy: Enemy
+        for enemy in self.enemy_list:
+            enemy.update(delta_time)
 
         for enemy in self.enemy_list:
             enemy.update_damage_texts()
@@ -201,16 +204,20 @@ class Game(arcade.View):
         if self.player.center_y - self.player.height / 2 < p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_fore"):
             self.scene.get_sprite_list("player_fore").append(self.player)
+            self.scene.get_sprite_list("player_fore").append(self.player.axe)
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
+                self.scene.get_sprite_list("player_back").remove(self.player.axe)
 
         elif self.player.center_y - self.player.height / 2 > p_wall[0].center_y - p_wall[
             0].height / 2 and self.player not in self.scene.get_sprite_list("player_back"):
             self.scene.get_sprite_list("player_back").append(self.player)
+            self.scene.get_sprite_list("player_back").append(self.player.axe)
 
             if self.player in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").remove(self.player)
+                self.scene.get_sprite_list("player_fore").remove(self.player.axe)
 
         # Update enemies z-index:
         for enemy in self.enemy_list:
@@ -247,11 +254,13 @@ class Game(arcade.View):
                     self.scene.get_sprite_list("enemy_back").append(enemy)
 
         # Move the player
-        self.player.update()
+        self.player.on_update(delta_time)
         cam_loc = pyglet.math.Vec2(self.player.center_x - SCREEN_WIDTH / 2, self.player.center_y - SCREEN_HEIGHT / 2)
+
         self.camera.move(cam_loc)
 
         self.physics_engine.step()
+        self.player.axe.position = self.player.position
 
 
     def on_key_press(self, key, modifiers):
@@ -301,10 +310,6 @@ class Game(arcade.View):
         # Update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
-
-    # def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
-    #     self.player.is_attacking = True
-    #     self.player.player_give_damage(enemy_list=self.enemy_list)
 
 def start_game():
     """ Creates the Game window """

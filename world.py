@@ -15,6 +15,7 @@ import arcade
 import datetime
 import random
 
+import pyglet.math
 from arcade.examples.array_backed_grid import SCREEN_WIDTH
 from perlin_noise import PerlinNoise
 from room import Room
@@ -56,11 +57,10 @@ def create_y_pos_comparison(sprite):
 def create_hori_hitbox(width,height):
     return [[-width/2, -height/2], [width/2, -height/2], [width/2, 0], [-width/2, 0]]
 def create_verti_hitbox(width,height):
-    return [[-width/2, -height/2], [width/2, -height/2], [width/2, height/8], [-width/2, height/8]]
+    return [[-width/2, -height/2], [width/2, -height/2], [width/2, 0], [-width/2, 0]]
 def create_verti_fullh_hitbox(width,height):
     return [[-width / 2, -height / 2], [width / 2, -height / 2], [width / 2, height / 2], [-width / 2, height/2]]
-# def create_verti_door_hitbox(width,height):
-#     return [[-width / 2, -height/ 8], [width / 2, -height / 2], [width / 2, height / 8], [-width / 2, height / 8]]
+
 
 
 class World(arcade.Window):
@@ -223,7 +223,7 @@ class World(arcade.Window):
                                                          image_height=HORI_WALL_HEIGHT,
                                                          center_x=int(x + 0.5 * FLOOR_TILE_SIZE + 0.5 * curr_width),
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + 0.5*HORI_WALL_HEIGHT), hit_box_algorithm=None)
-                        self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
+                        self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
                     # north
                     if self.rooms[i][j].north:
@@ -320,6 +320,18 @@ class World(arcade.Window):
 
         # sort sprite list by y coordinate, so they will be drawn in the correct order
         self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
+
+    def find_room(self, vec2_pos: pyglet.math.Vec2):
+        room: Room
+        curr_room = None
+        for room_r in self.rooms:
+            for room in room_r:
+                right = room.x + ROOM_SIZE
+                top = room.y + ROOM_SIZE
+                if room.x < vec2_pos.x < right and room.y < vec2_pos.y < top:
+                    return room
+
+        return None
 
 
     def setup(self):
