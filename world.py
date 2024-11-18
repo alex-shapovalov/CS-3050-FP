@@ -64,8 +64,7 @@ def create_verti_fullh_hitbox(width,height):
 
 
 class World(arcade.Window):
-    
-    
+    """ Class for procedural room and world generation """
     def __init__(self, color):
         random.seed()
 

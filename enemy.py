@@ -1,7 +1,7 @@
 import arcade
 import random
 import math
-import time
+from damage import DamageText
 
 SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
@@ -9,7 +9,9 @@ PUSHBACK_SPEED = ENEMY_SPEED / 2
 PLAYER_PADDING = 1
 COL_BUFFER = 5
 
+
 class Enemy(arcade.Sprite):
+    """ Class which handles enemy logic, movement, and damage """
     def __init__(self, player, player_damage, enemy_list, wall_list, sprite_scaling, screen_width, screen_height, health = 100, damage = 10, attack_type = "melee", image="enemy.png"):
         super().__init__(image, sprite_scaling)
         self.player = player
@@ -22,7 +24,7 @@ class Enemy(arcade.Sprite):
         self.distance = None
         self.last_damage_time = 0
         self.collide = False
-
+        self.damage_text = []
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -39,7 +41,6 @@ class Enemy(arcade.Sprite):
             self.center_x = screen_width + 50
             self.center_y = random.randint(0, screen_height)
 
-
         hitbox = []
         self.hitbox_width = self.width
         self.hitbox_height = self.height / 3
@@ -51,8 +52,8 @@ class Enemy(arcade.Sprite):
             hitbox.append((x, y))
         self.set_hit_box(hitbox)
 
-
     def update(self):
+        """ Constantly re-calculates where the player is for following along with collisions and pushbacks """
         self.calculate_distance()
         
         x_diff = self.player.center_x - self.center_x
@@ -81,7 +82,6 @@ class Enemy(arcade.Sprite):
                 self.change_x = math.cos(angle) * -PUSHBACK_SPEED
                 self.change_y = math.sin(angle) * -PUSHBACK_SPEED
 
-
         # Checking for enemy overlaps
         for enemy in self.enemy_list:
             if enemy == self:
@@ -99,13 +99,12 @@ class Enemy(arcade.Sprite):
                 self.change_x -= math.cos(angle_away_from_enemy) * PUSHBACK_SPEED
                 self.change_y -= math.sin(angle_away_from_enemy) * PUSHBACK_SPEED
 
-        # Ensures that if the enemies collide with a wall then they would continually try to run into it,
-        # causing the enemy to go into the wall hitbbox
+        # Ensures that if the enemies collide with a wall then they would continually
+        # try to run into it, causing the enemy to go into the wall hit box
         wall = self.collides_with_list(self.wall_list)
         if wall != []:
             # Checks every wall we are colliding with to make sure we cant run further in that direction
             for w in wall:
-
                 if w.left + COL_BUFFER < self.center_x < w.right - COL_BUFFER:
                     if (w.center_y-w.height < self.center_y-self.height and self.change_y < 0) or (w.center_y-w.height > self.center_y-self.height and self.change_y > 0):
                         self.change_y = 0
@@ -118,19 +117,28 @@ class Enemy(arcade.Sprite):
         # super().update()
 
     def calculate_distance(self):
+        """ Calculates distance between enemy and player """
         self.distance = math.sqrt((self.player.center_x - self.center_x) ** 2 + (self.player.center_y - self.center_y) ** 2)
 
+    def draw_damage_texts(self):
+        """ Draws damage texts on enemy hit """
+        for text in self.damage_text:
+            text.draw()
+
+    def update_damage_texts(self):
+        """ Removes expired texts from the list """
+        self.damage_text = [text for text in self.damage_text if text.update()]
+
     def enemy_receive_damage(self):
+        """ Gives damage to a hit enemy """
+        self.damage_text.append(DamageText(self.center_x, self.center_y, self.player_damage))
         self.health -= self.player_damage
         if self.health <= 0:
             self.kill()
-            #TODO: Add some sort of death effect / blood
+            self.player.score += 1
 
-    # TODO: Player takes self.damage damage, create player receive_damage class
     def enemy_give_damage(self):
+        """ Gives damage from an enemy to the player """
         if self.attack_type == "melee":
             # Player is damaged by contact
             self.player.player_receive_damage(self.damage)
-        elif self.attack_type == "ranged":
-            x = 0
-            # Player is damaged if projectile hits him
