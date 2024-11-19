@@ -62,7 +62,6 @@ def create_verti_fullh_hitbox(width,height):
     return [[-width / 2, -height / 2], [width / 2, -height / 2], [width / 2, height / 2], [-width / 2, height/2]]
 
 
-
 class World(arcade.Window):
     """ Class for procedural room and world generation """
     def __init__(self, color):
@@ -74,11 +73,11 @@ class World(arcade.Window):
         self.wall_list = arcade.SpriteList(use_spatial_hash = True)
         self.wall_front_list = arcade.SpriteList(use_spatial_hash = True)
         self.wall_back_list = arcade.SpriteList(use_spatial_hash = True)
+        self.wall_cover_list = arcade.SpriteList(use_spatial_hash=True)
         self.floor_list_outdoor = arcade.SpriteList(use_spatial_hash = True)
-        self.floor_list_indoor = arcade.SpriteList(use_spatial_hash=True)
+        self.floor_list_indoor = arcade.SpriteList(use_spatial_hash = True)
 
-        #
-        # # Set up the player info
+        # Set up the player info
         self.player_sprite = None
 
         # Set the background color
@@ -187,6 +186,15 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height),hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+                    self.wall_back_list.append(self.wall_sprite)
+                    self.wall_sprite = arcade.Sprite("wall_cover.png",
+                                                     scale=WALL_SCALE,
+                                                     image_width=VERTI_WALL_WIDTH,
+                                                     image_height=2 * FLOOR_TILE_SIZE,
+                                                     center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
+                                                     center_y=int(y + 10 * FLOOR_TILE_SIZE),
+                                                     hit_box_algorithm=None)
+                    self.wall_cover_list.append(self.wall_sprite)
                     # east
                     if j == WORLD_SIZE-1:
                         curr_height = 11 * FLOOR_TILE_SIZE
@@ -198,6 +206,15 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height),hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+                    self.wall_back_list.append(self.wall_sprite)
+                    self.wall_sprite = arcade.Sprite("wall_cover.png",
+                                                     scale=WALL_SCALE,
+                                                     image_width=VERTI_WALL_WIDTH,
+                                                     image_height=2 * FLOOR_TILE_SIZE,
+                                                     center_x=int(x + 0.5 * VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
+                                                     center_y=int(y + 10 * FLOOR_TILE_SIZE),
+                                                     hit_box_algorithm=None)
+                    self.wall_cover_list.append(self.wall_sprite)
 
                     # Make the floors
                     verti_offset = 0
@@ -326,6 +343,13 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height + 5.5 * FLOOR_TILE_SIZE), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_back_list.append(self.wall_sprite)
+                        self.wall_sprite = arcade.Sprite("wall_cover.png",
+                                                         scale=WALL_SCALE,
+                                                         image_width=VERTI_WALL_WIDTH,
+                                                         image_height=2 * FLOOR_TILE_SIZE,
+                                                         center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
+                                                         center_y=int(y + 10 * FLOOR_TILE_SIZE), hit_box_algorithm=None)
+                        self.wall_cover_list.append(self.wall_sprite)
                     else:
                         curr_height = 11 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_verti_9.png",
@@ -336,6 +360,16 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+
+                    self.wall_back_list.append(self.wall_sprite)
+                    self.wall_sprite = arcade.Sprite("wall_cover.png",
+                                                     scale=WALL_SCALE,
+                                                     image_width=VERTI_WALL_WIDTH,
+                                                     image_height=2 * FLOOR_TILE_SIZE,
+                                                     center_x=int(x + 0.5 * VERTI_WALL_WIDTH),
+                                                     center_y=int(y + 10 * FLOOR_TILE_SIZE),
+                                                     hit_box_algorithm=None)
+                    self.wall_cover_list.append(self.wall_sprite)
 
                     # east
                     if self.rooms[i][j].east:
@@ -355,7 +389,7 @@ class World(arcade.Window):
                                                          center_x=int(x + 0.5*VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
                                                          center_y=int(y + 0.5*curr_height + 5.5 * FLOOR_TILE_SIZE), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
-                        self.wall_back_list.append(self.wall_sprite)
+
                     else:
                         curr_height = 11 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_verti_9.png",
@@ -366,6 +400,16 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+
+                    self.wall_back_list.append(self.wall_sprite)
+                    self.wall_sprite = arcade.Sprite("wall_cover.png",
+                                                     scale=WALL_SCALE,
+                                                     image_width=VERTI_WALL_WIDTH,
+                                                     image_height=2 * FLOOR_TILE_SIZE,
+                                                     center_x=int(x + 0.5 * VERTI_WALL_WIDTH + 8.5 * FLOOR_TILE_SIZE),
+                                                     center_y=int(y + 10 * FLOOR_TILE_SIZE),
+                                                     hit_box_algorithm=None)
+                    self.wall_cover_list.append(self.wall_sprite)
 
                     # Make the floors
                     verti_offset = 0
