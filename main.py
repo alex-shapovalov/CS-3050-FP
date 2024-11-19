@@ -46,13 +46,17 @@ class Game(arcade.View):
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
-        self.floor_list = arcade.SpriteList()
+        self.wall_list = arcade.SpriteList()
+        self.floor_list_indoor = arcade.SpriteList()
+        self.floor_list_outdoor = arcade.SpriteList()
 
     def cleanup(self):
         """ Cleanup class on restart """
         self.enemy_list = None
         self.player = None
-        self.floor_list = None
+        self.floor_list_indoor = None
+        self.floor_list_outdoor = None
+        self.wall_list = None
         self.scene = None
         self.world = None
         self.camera = None
@@ -62,7 +66,8 @@ class Game(arcade.View):
         self.world.setup()
 
         # Set up floors
-        self.scene.add_sprite_list("floor_list")
+        self.scene.add_sprite_list("floor_list_indoor")
+        self.scene.add_sprite_list("floor_list_outdoor")
 
         # Setting up scene to handle correct layering of sprites
         self.scene.add_sprite_list("enemy_back")
@@ -76,7 +81,8 @@ class Game(arcade.View):
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
         self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
-        self.scene.add_sprite_list_before("floor_list", "wall_back", True, self.world.floor_list)
+        self.scene.add_sprite_list_before("floor_list_indoor", "wall_back", True, self.world.floor_list_indoor)
+        self.scene.add_sprite_list_after("floor_list_outdoor", "floor_list_indoor", True, self.world.floor_list_outdoor)
 
         # Setting up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -196,7 +202,7 @@ class Game(arcade.View):
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
-        if self.time_since_last_spawn > self.spawn_time and len(self.enemy_list) < 2:
+        if self.time_since_last_spawn > self.spawn_time:
             # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
             if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
                 enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
