@@ -202,7 +202,7 @@ class Game(arcade.View):
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
-        if self.time_since_last_spawn > self.spawn_time:
+        if self.time_since_last_spawn > self.spawn_time and len(self.enemy_list) < 2:
             # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
             if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
                 enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
