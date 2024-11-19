@@ -25,6 +25,10 @@ SKELETON = 1
 ZOMBIE = 2
 GHOST = 3
 
+GHOST_DMG_MULTIPLIER = 0.5 
+
+DROP_HEALING_POTION = 1
+
 TARGETS = {
     "player": 3,
     "door": 2,
@@ -69,6 +73,8 @@ class Enemy(arcade.Sprite):
         self.adj_rooms = world.get_adj_rooms(self.room)
         self.wait_until_room = False
         self.next_center_loc = None
+
+        self.spawn_potion = False
 
         # Spawn somewhere random
         spawn_location = random.choice(["top", "bottom", "left", "right"])
@@ -122,6 +128,7 @@ class Enemy(arcade.Sprite):
                 self.walking_animation.append(texture)
         else:
             self.idle_texture_pair = load_texture_pair(f"ghost.png")
+            self.damage = int(self.damage * GHOST_DMG_MULTIPLIER)
 
     def update(self, delta_time: float = 1 / 60):
         """ Constantly re-calculates where the player is for following along with collisions and pushbacks """
@@ -379,13 +386,19 @@ class Enemy(arcade.Sprite):
         """ Removes expired texts from the list """
         self.damage_text = [text for text in self.damage_text if text.update()]
 
+    def drop_potion(self):
+        '''Enemy has a 10% chance to drop a healing potion upon death'''
+        rand_num = random.randint(1,10)
+        if rand_num == DROP_HEALING_POTION:
+            self.spawn_potion = True
+            return
+        
+        self.spawn_potion = False
+
     def enemy_receive_damage(self):
         """ Gives damage to a hit enemy """
         self.damage_text.append(DamageText(self.center_x, self.center_y, self.player_damage))
         self.health -= self.player_damage
-        if self.health <= 0:
-            self.kill()
-            self.player.score += 1
 
     def enemy_give_damage(self):
         """ Gives damage from an enemy to the player """

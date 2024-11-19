@@ -11,6 +11,8 @@ WALL_WIDTH = 79
 FACING_RIGHT = 0
 FACING_LEFT = 1
 
+HEALING_FACTOR = 10
+
 def load_texture_pair(filename):
         """
         Load a texture pair, with the second being a mirror image.
@@ -144,6 +146,7 @@ class Player(arcade.Sprite):
                 self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
 
     def player_receive_damage(self, amount):
+        '''Recieve damage from enemy with invincibility frames'''
         # Invincibility frames
         if time.time() - self.damaged_time >= 1.5:
             self.texture = self.damaged_texture[self.facing]
@@ -156,8 +159,16 @@ class Player(arcade.Sprite):
             pass
 
     def player_give_damage(self, enemy_list):
+        '''Inflict damage onto enemy if its in range'''
         for enemy in enemy_list:
             if enemy.target_type == 3:
                 enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
                 if enemy.distance <= PLAYER_PADDING: # this if statement is subject to change
-                    enemy.enemy_receive_damage()
+                    return enemy.enemy_receive_damage()
+                
+    def heal_player(self):
+        '''Heal player the amount of the healing factor'''
+        if self.health + HEALING_FACTOR > 100:
+            self.health = 100
+        else:
+            self.health += HEALING_FACTOR

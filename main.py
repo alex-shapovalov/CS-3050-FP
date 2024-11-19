@@ -8,6 +8,7 @@ from world import World, ROOM_SIZE
 from player import Player
 from enemy import Enemy
 from menu import MenuView, GuideView, EscView, DeathView
+import random
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -21,6 +22,8 @@ PLAYER_DAMAGE = 50
 ENEMY_HEALTH = 100
 ENEMY_DAMAGE = 10
 COLOR = arcade.color.AMAZON
+
+POTION_PADDING = 25
 
 
 class Game(arcade.View):
@@ -91,6 +94,7 @@ class Game(arcade.View):
 
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
+        self.potion_list = arcade.SpriteList()
 
         player_filter = pymunk.ShapeFilter(categories=0b1000, mask=0b0111)
         wall_filter = pymunk.ShapeFilter(categories=0b0100, mask=0b1011)
@@ -179,6 +183,9 @@ class Game(arcade.View):
 
         for enemy in self.enemy_list:
             enemy.draw_damage_texts()
+
+        for potion in self.potion_list:
+            potion.draw()
 
         if self.player.damaged:
             if self.player.health <= 0:
@@ -299,6 +306,23 @@ class Game(arcade.View):
         self.physics_engine.step()
         self.player.axe.position = self.player.position
 
+        for enemy in self.enemy_list:
+            if enemy.health <= 0:
+                enemy.drop_potion()
+                if enemy.spawn_potion:
+                    potion = arcade.Sprite("Potion.png", scale=1)
+                    potion.center_x = enemy.center_x
+                    potion.center_y = enemy.center_y
+                    self.potion_list.append(potion)
+
+                enemy.kill()
+
+        for potion in self.potion_list:
+            if potion.center_x - POTION_PADDING <= self.player.center_x <= potion.center_x + POTION_PADDING:
+                if potion.center_y - POTION_PADDING <= self.player.center_y <= potion.center_y + POTION_PADDING:
+                    self.player.heal_player()
+                    potion.kill()
+
 
     def on_key_press(self, key, modifiers):
         """ Controls key presses and input """
@@ -347,6 +371,7 @@ class Game(arcade.View):
         # Update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
+        
 
 def start_game():
     """ Creates the Game window """
