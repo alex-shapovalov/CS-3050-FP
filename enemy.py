@@ -146,38 +146,39 @@ class Enemy(arcade.Sprite):
                     not chasing and self.move_time >= CHANGE_MOVE_TIME and not self.wait_until_room):
                 # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
                 choice = random.randint(1, 4)
-                if choice == 1:
+                if choice != 1:
                     # find the doors of the current room
                     self.next_center_loc = None
                     doors, next_room_center = self.find_doors()
 
-                    options = [doors[i] for i in range(len(doors)) if doors[i]]
-                    if not self.room.indoor:
-                        options += [room for room in self.adj_rooms if room.indoor]
+                    options = [i for i in range(len(doors)) if doors[i]]
+                    # if not self.room.indoor:
+                    #     options += [room for room in self.adj_rooms if room.indoor]
 
                     # Choose a random doors
                     room_choice = random.randint(0, len(options) - 1)
-                    if options[room_choice] is pyglet.math.Vec2:
-                        # We chose a door:
-                        door_choice = doors[room_choice]
-                        self.next_center_loc = next_room_center[room_choice]
+
+                    if not self.room.indoor and not self.adj_rooms[options[room_choice]].indoor:
+                        # We chose an adjacent outdoor room, no need to go through a door
+                        self.target = pyglet.math.Vec2(
+                            random.randint(self.adj_rooms[options[room_choice]].x + 100,
+                                           self.adj_rooms[options[room_choice]].x + self.room.size - 100),
+                            random.randint(self.adj_rooms[options[room_choice]].y + 100,
+                                           self.adj_rooms[options[room_choice]].y + self.room.size - 100))
+                        self.target_type = TARGETS["wander"]
+                        print("move outdoor tiles")
+                    else:
+                        # We chose an indoor room we must go through the door:
+                        door_choice = doors[options[room_choice]]
+                        self.next_center_loc = next_room_center[options[room_choice]]
 
                         # Update current target
                         self.target = door_choice
                         self.target_type = TARGETS["door"]
-                        print("move to door")
+                        print("move to door #", options[room_choice])
 
                         # Ensures we only change our target once we enter the new room
                         self.wait_until_room = True
-                    else:
-                        # We chose an adjacent outdoor room
-                        self.target = pyglet.math.Vec2(
-                            random.randint(self.adj_rooms[room_choice].x + 100,
-                                           self.adj_rooms[room_choice].x + self.room.size - 100),
-                            random.randint(self.adj_rooms[room_choice].y + 100,
-                                           self.adj_rooms[room_choice].y + self.room.size - 100))
-                        self.target_type = TARGETS["wander"]
-                        print("move outdoor tiles")
 
                 else:
                     # Picks a random point within our current room and sets our target to wander
@@ -216,9 +217,10 @@ class Enemy(arcade.Sprite):
 
             elif self.room == self.player.room:
                 # # If we are in the room with the player go towards the player
-                self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
-                self.target_type = TARGETS["player"]
-                print("chasing")
+                # self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
+                # self.target_type = TARGETS["player"]
+                # print("chasing")
+                pass
         else:
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
