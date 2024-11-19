@@ -157,7 +157,7 @@ class Player(arcade.Sprite):
 
     def player_give_damage(self, enemy_list):
         for enemy in enemy_list:
-            if enemy.target_type == 3 and enemy.room == self.room:
+            if enemy.target_type == 3:
                 enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
                 if enemy.distance <= PLAYER_PADDING: # this if statement is subject to change
                     enemy.enemy_receive_damage()

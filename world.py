@@ -370,6 +370,10 @@ class World(arcade.Window):
         # sort sprite list by y coordinate, so they will be drawn in the correct order
         self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
 
+    '''
+    Method for finding the adjacent rooms of a given room:
+    Useful for enemies to know where they can move
+    '''
     def get_adj_rooms(self, room: Room):
         adj_rooms = []
         for r in range(len(self.rooms)):
@@ -377,7 +381,7 @@ class World(arcade.Window):
                 if self.rooms[r][c] == room:
                     # Add each adjacent room
                     # North
-                    if r + 1 < len(self.rooms)-1:
+                    if r + 1 <= len(self.rooms)-1:
                         adj_rooms.append(self.rooms[r+1][c])
                     else:
                         adj_rooms.append(None)
@@ -390,7 +394,7 @@ class World(arcade.Window):
 
 
                     # East
-                    if c + 1 < len(self.rooms[r]) - 1:
+                    if c + 1 <= len(self.rooms[r]) - 1:
                         adj_rooms.append(self.rooms[r][c+1])
                     else:
                         adj_rooms.append(None)

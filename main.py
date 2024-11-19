@@ -28,8 +28,6 @@ class Game(arcade.View):
     def __init__(self):
         super().__init__()
 
-        self.num = 0
-
         # Base game vars
         self.physics_engine = None
         self.width = SCREEN_WIDTH
@@ -192,7 +190,7 @@ class Game(arcade.View):
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
-        if self.time_since_last_spawn > self.spawn_time and self.num < 1:
+        if self.time_since_last_spawn > self.spawn_time:
             # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
             if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
                 enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, self.wall_list, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
@@ -215,7 +213,6 @@ class Game(arcade.View):
                                                collision_type="ghost")
                 self.physics_engine.get_physics_object(enemy).shape.filter = ghost_filter
 
-            self.num +=1
 
             # self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
             self.scene.add_sprite("enemy_fore", enemy)
