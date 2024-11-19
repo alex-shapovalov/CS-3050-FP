@@ -175,6 +175,7 @@ class World(arcade.Window):
                                                              y + 8.5 * FLOOR_TILE_SIZE + 0.5 * HORI_WALL_HEIGHT), hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_list.append(self.wall_sprite)
+
                     # west
                     if j == 0:
                         curr_height = 11 * FLOOR_TILE_SIZE
@@ -241,6 +242,29 @@ class World(arcade.Window):
                                                          center_y=int(y + 0 * FLOOR_TILE_SIZE + (1/2)*HORI_WALL_HEIGHT),hit_box_algorithm=None)
                         self.wall_sprite.hit_box = [[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2],[0,-self.wall_sprite.height/2]]
                         self.wall_list.append(self.wall_sprite)
+                        if i != 0 and not self.rooms[i-1][j].indoor:
+                            self.wall_sprite = arcade.Sprite("wall_hori_3.png",
+                                                             scale=WALL_SCALE,
+                                                             image_width=curr_width,
+                                                             image_height=HORI_WALL_HEIGHT,
+                                                             center_x=int(
+                                                                 (x + 0.5 * FLOOR_TILE_SIZE) + (1 / 2) * curr_width),
+                                                             center_y=int(y + 0 * FLOOR_TILE_SIZE + (1/2)*HORI_WALL_HEIGHT-VERTI_WALL_WIDTH),
+                                                             hit_box_algorithm=None)
+                            self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                            self.wall_list.append(self.wall_sprite)
+                            self.wall_sprite = arcade.Sprite("wall_hori_3.png",
+                                                             scale=WALL_SCALE,
+                                                             image_width=3 * FLOOR_TILE_SIZE,
+                                                             image_height=HORI_WALL_HEIGHT,
+                                                             center_x=int(
+                                                                 x + 5.5 * FLOOR_TILE_SIZE + (1 / 2) * curr_width),
+                                                             center_y=int(
+                                                                 y + 0 * FLOOR_TILE_SIZE + (1/2)*HORI_WALL_HEIGHT-VERTI_WALL_WIDTH),
+                                                             hit_box_algorithm=None)
+                            self.wall_sprite.hit_box = create_hori_hitbox(self.wall_sprite.width, self.wall_sprite.height)
+                            self.wall_list.append(self.wall_sprite)
+
                     else:
                         curr_width = 8 * FLOOR_TILE_SIZE
                         self.wall_sprite = arcade.Sprite("wall_hori_8.png",
@@ -369,15 +393,60 @@ class World(arcade.Window):
         # sort sprite list by y coordinate, so they will be drawn in the correct order
         self.wall_list.sort(key = create_y_pos_comparison, reverse=True)
 
+    '''
+    Method for finding the adjacent rooms of a given room:
+    Useful for enemies to know where they can move
+    '''
+    def get_adj_rooms(self, room: Room):
+        adj_rooms = []
+        for r in range(len(self.rooms)):
+            for c in range(len(self.rooms[r])):
+                if self.rooms[r][c] == room:
+                    # Add each adjacent room
+                    # North
+                    if r + 1 <= len(self.rooms)-1:
+                        adj_rooms.append(self.rooms[r+1][c])
+                    else:
+                        adj_rooms.append(None)
+
+                    # South
+                    if r > 0:
+                        adj_rooms.append(self.rooms[r-1][c])
+                    else:
+                        adj_rooms.append(None)
+
+
+                    # East
+                    if c + 1 <= len(self.rooms[r]) - 1:
+                        adj_rooms.append(self.rooms[r][c+1])
+                    else:
+                        adj_rooms.append(None)
+
+                    # West
+                    if c > 0:
+                        adj_rooms.append(self.rooms[r][c-1])
+                    else:
+                        adj_rooms.append(None)
+                    return adj_rooms
+
+        return None
+
+
+
+
     def find_room(self, vec2_pos: pyglet.math.Vec2):
         room: Room
-        curr_room = None
+        r = 0
         for room_r in self.rooms:
+            c = 0
             for room in room_r:
                 right = room.x + ROOM_SIZE
                 top = room.y + ROOM_SIZE
                 if room.x < vec2_pos.x < right and room.y < vec2_pos.y < top:
+                    # print("(",r,",",c,")")
                     return room
+                c += 1
+            r += 1
 
         return None
 

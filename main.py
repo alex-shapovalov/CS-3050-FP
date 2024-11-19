@@ -1,4 +1,5 @@
 import arcade
+import pymunk
 import arcade.key
 import pyglet
 import time
@@ -28,7 +29,6 @@ class Game(arcade.View):
         super().__init__()
 
         # Base game vars
-        self.background = arcade.load_texture("floor.png")
         self.physics_engine = None
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
@@ -69,7 +69,7 @@ class Game(arcade.View):
         self.scene.add_sprite_list("floor_list_indoor")
         self.scene.add_sprite_list("floor_list_outdoor")
 
-        # Setting up wall interactions
+        # Setting up scene to handle correct layering of sprites
         self.scene.add_sprite_list("enemy_back")
         self.scene.add_sprite_list("player_back")
         self.scene.add_sprite_list("enemy_mid_b")
@@ -77,11 +77,7 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        # wall = arcade.Sprite("wall.png", SPRITE_SCALING, center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 2 + 250, hit_box_algorithm=None)
-        # wall_hb = [[-wall.width, -wall.height], [wall.width, -wall.height], [wall.width, -wall.height/2], [-wall.width, -wall.height/2]]
-
-        # wall.set_hit_box(wall_hb)
-        # self.wall_list.append(wall)
+        # moving lists into the scene
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
         self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
@@ -89,18 +85,29 @@ class Game(arcade.View):
         self.scene.add_sprite_list_after("floor_list_outdoor", "floor_list_indoor", True, self.world.floor_list_outdoor)
 
         # Setting up the player
-        self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
 
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
 
+        player_filter = pymunk.ShapeFilter(categories=0b1000, mask=0b0111)
+        wall_filter = pymunk.ShapeFilter(categories=0b0100, mask=0b1011)
+
         self.physics_engine = arcade.PymunkPhysicsEngine()
         self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
         self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_back_list, body_type=1, collision_type="wall")
+
+        self.physics_engine.get_physics_object(self.player).shape.filter = player_filter
+        for wall in self.world.wall_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
+        for wall in self.world.wall_front_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
+        for wall in self.world.wall_back_list:
+            self.physics_engine.get_physics_object(wall).shape.filter = wall_filter
 
     def draw_health_bar(self):
         """ Draw the health bar for the player, always relative to the screen """
@@ -149,8 +156,8 @@ class Game(arcade.View):
         """ Render the screen """
         self.clear()
         self.camera.use()
-        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.background)
-        arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
+        # arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.background)
+        # arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
 
         # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
         #for i in range(len(self.world.rooms)):
@@ -166,6 +173,9 @@ class Game(arcade.View):
         self.draw_health_bar()
 
         self.draw_score()
+
+        for enemy in self.enemy_list:
+            enemy.draw_hit_box()
 
         for enemy in self.enemy_list:
             enemy.draw_damage_texts()
@@ -195,7 +205,20 @@ class Game(arcade.View):
                 self.spawn_boss = True
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
-            self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
+
+            if enemy.rand_num != 3:
+                enemy_filter = pymunk.ShapeFilter(categories=0b0010, mask=0b1101)
+                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                               collision_type="enemy")
+                self.physics_engine.get_physics_object(enemy).shape.filter = enemy_filter
+            else:
+                ghost_filter = pymunk.ShapeFilter(categories=0b0001, mask=0b1010)
+                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                               collision_type="ghost")
+                self.physics_engine.get_physics_object(enemy).shape.filter = ghost_filter
+
+
+            # self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
             self.scene.add_sprite("enemy_fore", enemy)
 
         # Update enemies

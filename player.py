@@ -1,5 +1,5 @@
 import arcade
-import pymunk
+import pyglet
 import math
 import time
 import enemy
@@ -24,7 +24,7 @@ class Player(arcade.Sprite):
     """ Player Class """
 
     
-    def __init__(self, health, damage, sprite_scaling, screen_width, screen_height):
+    def __init__(self, health, damage, sprite_scaling, world, screen_width, screen_height):
         """Initialize player"""
 
         # initialize player
@@ -66,6 +66,8 @@ class Player(arcade.Sprite):
         self.is_attacking = False
 
         self.facing = FACING_RIGHT
+        self.world = world
+        self.room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
 
         self.idle_texture_pair = load_texture_pair(f"player.png")
         self.walking_texture_pair = load_texture_pair(f"player.png")
@@ -103,6 +105,9 @@ class Player(arcade.Sprite):
     def on_update(self, delta_time):
         self.axe.visible = True
 
+        room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
+        if room != self.room:
+            self.room = room
 
         if self.damaged and time.time() - self.damaged_time > 0.2:
             self.damaged = False
@@ -110,7 +115,7 @@ class Player(arcade.Sprite):
         if self.is_attacking:
             self.axe.visible = False
             self.attack_curr_texture += delta_time * 20
-            print("time: ", self.attack_curr_texture)
+
             if self.attack_curr_texture >= len(self.attack_animation):
                 self.attack_curr_texture = 0
                 self.is_attacking = False
@@ -152,6 +157,7 @@ class Player(arcade.Sprite):
 
     def player_give_damage(self, enemy_list):
         for enemy in enemy_list:
-            enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
-            if enemy.distance <= WALL_WIDTH: # this if statement is subject to change
-                enemy.enemy_receive_damage()
+            if enemy.target_type == 3:
+                enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
+                if enemy.distance <= PLAYER_PADDING: # this if statement is subject to change
+                    enemy.enemy_receive_damage()
