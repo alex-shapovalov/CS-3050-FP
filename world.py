@@ -74,7 +74,8 @@ class World(arcade.Window):
         self.wall_list = arcade.SpriteList(use_spatial_hash = True)
         self.wall_front_list = arcade.SpriteList(use_spatial_hash = True)
         self.wall_back_list = arcade.SpriteList(use_spatial_hash = True)
-        self.floor_list = arcade.SpriteList(use_spatial_hash = True)
+        self.floor_list_outdoor = arcade.SpriteList(use_spatial_hash = True)
+        self.floor_list_indoor = arcade.SpriteList(use_spatial_hash=True)
 
         #
         # # Set up the player info
@@ -196,6 +197,28 @@ class World(arcade.Window):
                                                          center_y=int(y + 0.5 * curr_height),hit_box_algorithm=None)
                         self.wall_sprite.hit_box = create_verti_fullh_hitbox(self.wall_sprite.width, self.wall_sprite.height)
                         self.wall_front_list.append(self.wall_sprite)
+
+                    # Make the floors
+                    verti_offset = 0
+                    hori_offset = 0
+                    hori_range_reduction = 0
+                    verti_range_reduction = 0
+                    if i == 0:  # If we are on the south edge
+                        verti_offset = FLOOR_TILE_SIZE
+                        verti_range_reduction = 1
+                    if j == 0:  # If we are on the west edge
+                        hori_offset = FLOOR_TILE_SIZE
+                        hori_range_reduction = 1
+
+                    for k in range(10 - hori_range_reduction):
+                        for l in range(10 - verti_range_reduction):
+                            self.floor_sprite = arcade.Sprite("grass.png",
+                                                              scale=WALL_SCALE,
+                                                              image_width=FLOOR_TILE_SIZE,
+                                                              image_height=FLOOR_TILE_SIZE,
+                                                              center_x=int(x + k * FLOOR_TILE_SIZE + hori_offset),
+                                                              center_y=int(y + l * FLOOR_TILE_SIZE + verti_offset))
+                            self.floor_list_outdoor.append(self.floor_sprite)
 
                 # For indoor rooms, create the walls based on where doors are
                 elif self.rooms[i][j].indoor:
@@ -340,7 +363,7 @@ class World(arcade.Window):
                                                          image_height=FLOOR_TILE_SIZE,
                                                          center_x=int(x + k * FLOOR_TILE_SIZE + hori_offset),
                                                          center_y=int(y + l * FLOOR_TILE_SIZE + verti_offset)                                                              )
-                            self.floor_list.append(self.floor_sprite)
+                            self.floor_list_indoor.append(self.floor_sprite)
 
 
         # sort sprite list by y coordinate, so they will be drawn in the correct order
