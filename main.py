@@ -47,6 +47,7 @@ class Game(arcade.View):
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
         self.wall_list = arcade.SpriteList()
+        self.wall_cover_list = arcade.SpriteList()
         self.floor_list_indoor = arcade.SpriteList()
         self.floor_list_outdoor = arcade.SpriteList()
 
@@ -56,6 +57,7 @@ class Game(arcade.View):
         self.player = None
         self.floor_list_indoor = None
         self.floor_list_outdoor = None
+        self.wall_cover_list = None
         self.wall_list = None
         self.scene = None
         self.world = None
@@ -83,8 +85,9 @@ class Game(arcade.View):
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
         self.scene.add_sprite_list_before("floor_list_indoor", "wall_back", True, self.world.floor_list_indoor)
         self.scene.add_sprite_list_after("floor_list_outdoor", "floor_list_indoor", True, self.world.floor_list_outdoor)
+        self.scene.add_sprite_list_after("wall_cover_list", "wall_front", True, self.world.wall_cover_list)
 
-        # Setting up the player
+        # Setting up the playerh
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.player.center_x = SCREEN_WIDTH / 2
         self.player.center_y = SCREEN_HEIGHT / 2
@@ -141,6 +144,8 @@ class Game(arcade.View):
             with open("highscore.txt", 'r') as file:
                 highscore = file.readline()
                 if highscore is None:
+                    highscore = 0
+                elif not highscore.isnumeric():
                     highscore = 0
         else:
             highscore = 0
