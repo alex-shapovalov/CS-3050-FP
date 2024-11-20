@@ -21,6 +21,7 @@ PLAYER_HEALTH = 100
 PLAYER_DAMAGE = 50
 ENEMY_HEALTH = 100
 ENEMY_DAMAGE = 10
+MAX_ENEMIES = 15
 COLOR = arcade.color.AMAZON
 
 POTION_PADDING = 25
@@ -28,10 +29,12 @@ POTION_PADDING = 25
 
 class Game(arcade.View):
     """ Class which runs the entire game including menu switching, GUI, rendering, and enemy spawning """
+
     def __init__(self):
         super().__init__()
 
         # Base game vars
+        self.player = None
         self.physics_engine = None
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
@@ -49,7 +52,6 @@ class Game(arcade.View):
         self.world = World(COLOR)
         self.camera = arcade.Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.scene = arcade.Scene()
-        self.wall_list = arcade.SpriteList()
         self.wall_cover_list = arcade.SpriteList()
         self.floor_list_indoor = arcade.SpriteList()
         self.floor_list_outdoor = arcade.SpriteList()
@@ -58,10 +60,10 @@ class Game(arcade.View):
         """ Cleanup class on restart """
         self.enemy_list = None
         self.player = None
+        self.physics_engine = None
         self.floor_list_indoor = None
         self.floor_list_outdoor = None
         self.wall_cover_list = None
-        self.wall_list = None
         self.scene = None
         self.world = None
         self.camera = None
@@ -84,15 +86,14 @@ class Game(arcade.View):
 
         # moving lists into the scene
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
-        self.scene.add_sprite_list_after("wall_front","enemy_fore",True, self.world.wall_front_list)
+        self.scene.add_sprite_list_after("wall_front", "enemy_fore", True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
         self.scene.add_sprite_list_before("floor_list_indoor", "wall_back", True, self.world.floor_list_indoor)
         self.scene.add_sprite_list_after("floor_list_outdoor", "floor_list_indoor", True, self.world.floor_list_outdoor)
         self.scene.add_sprite_list_after("wall_cover_list", "wall_front", True, self.world.wall_cover_list)
 
-        # Setting up the playerh
+        # Setting up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
-
 
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
@@ -102,7 +103,8 @@ class Game(arcade.View):
         wall_filter = pymunk.ShapeFilter(categories=0b0100, mask=0b1011)
 
         self.physics_engine = arcade.PymunkPhysicsEngine()
-        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="player")
+        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                       collision_type="player")
         self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_back_list, body_type=1, collision_type="wall")
@@ -133,9 +135,10 @@ class Game(arcade.View):
             else:
                 color = arcade.color.BLACK
             x = bar_x + i * rect_width
-            arcade.draw_rectangle_filled(x + rect_width / 2, bar_y, rect_width, bar_height, color,)
+            arcade.draw_rectangle_filled(x + rect_width / 2, bar_y, rect_width, bar_height, color, )
 
-        arcade.draw_text(str(self.player.health) + " / 100", bar_x + 200, bar_y - 10, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text(str(self.player.health) + " / 100", bar_x + 200, bar_y - 10, arcade.color.WHITE, font_size=20,
+                         anchor_x="center", font_name="Kenney Future")
 
     def draw_score(self):
         """ Draw the score and highscore of the user """
@@ -157,8 +160,10 @@ class Game(arcade.View):
             with open("highscore.txt", 'w') as file:
                 file.write(str(self.player.score))
 
-        arcade.draw_text("Score: " + str(self.player.score), score_x, score_y - 10, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
-        arcade.draw_text("Highscore: " + str(highscore), score_x, score_y - 50, arcade.color.WHITE, font_size=20, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Score: " + str(self.player.score), score_x, score_y - 10, arcade.color.WHITE, font_size=20,
+                         anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Highscore: " + str(highscore), score_x, score_y - 50, arcade.color.WHITE, font_size=20,
+                         anchor_x="center", font_name="Kenney Future")
 
     def on_draw(self):
         """ Render the screen """
@@ -167,12 +172,10 @@ class Game(arcade.View):
         # arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.background)
         # arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
 
-        # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's no need to draw the outdoor rooms.
-        #for i in range(len(self.world.rooms)):
-        #    for j in range(len(self.world.rooms[i])):
-        #        room = self.world.rooms[i][j]
-        #        if (room.indoor):
-        #            arcade.draw_rectangle_filled(room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
+        # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's
+        # no need to draw the outdoor rooms. for i in range(len(self.world.rooms)): for j in range(len(
+        # self.world.rooms[i])): room = self.world.rooms[i][j] if (room.indoor): arcade.draw_rectangle_filled(
+        # room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
 
         self.scene.draw()
 
@@ -214,14 +217,16 @@ class Game(arcade.View):
 
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
-        if self.time_since_last_spawn > self.spawn_time and len(self.enemy_list) < 2:
+        if self.time_since_last_spawn > self.spawn_time and len(self.enemy_list) < MAX_ENEMIES:
             # If score is divisible by 20, spawn a boss (2x the size, 2x the damage, and 4x the health)
             if self.player.score % 20 == 0 and self.player.score != 0 and self.spawn_boss == True:
-                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING*2, SCREEN_WIDTH, SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING * 2, SCREEN_WIDTH,
+                              SCREEN_HEIGHT, ENEMY_HEALTH * 4, ENEMY_DAMAGE * 2)
                 self.spawn_boss = False
             # Create a new enemy to spawn
             else:
-                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING, SCREEN_WIDTH, SCREEN_HEIGHT)
+                enemy = Enemy(self.player, PLAYER_DAMAGE, self.enemy_list, self.world, SPRITE_SCALING, SCREEN_WIDTH,
+                              SCREEN_HEIGHT)
                 self.spawn_boss = True
             self.enemy_list.append(enemy)
             self.time_since_last_spawn = 0
@@ -237,8 +242,6 @@ class Game(arcade.View):
                                                collision_type="ghost")
                 self.physics_engine.get_physics_object(enemy).shape.filter = ghost_filter
 
-
-            # self.physics_engine.add_sprite(enemy, mass = 1,  moment=arcade.PymunkPhysicsEngine.MOMENT_INF, collision_type="enemy")
             self.scene.add_sprite("enemy_fore", enemy)
 
         # Update enemies
@@ -258,7 +261,6 @@ class Game(arcade.View):
             self.scene.get_sprite_list("player_fore").append(self.player)
             if self.player.axe not in self.scene.get_sprite_list("player_fore"):
                 self.scene.get_sprite_list("player_fore").append(self.player.axe)
-
 
             if self.player in self.scene.get_sprite_list("player_back"):
                 self.scene.get_sprite_list("player_back").remove(self.player)
@@ -336,13 +338,12 @@ class Game(arcade.View):
                     self.player.heal_player()
                     potion.kill()
 
-
     def on_key_press(self, key, modifiers):
         """ Controls key presses and input """
 
         # If the player presses a key, update the speed
         self.keys_pressed.add(key)
-    
+
         # Check key combinations to determine direction
         self.update_movement()
 
@@ -354,7 +355,6 @@ class Game(arcade.View):
             self.last_attack_time = time.time()
             self.player.is_attacking = True
             self.player.player_give_damage(self.enemy_list)
-            
 
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key """
@@ -386,25 +386,31 @@ class Game(arcade.View):
         self.physics_engine.set_velocity(self.player, updated_vel)
         
 
+
 def start_game():
     """ Creates the Game window """
     game_view = Game()
     game_view.setup()
     arcade.get_window().show_view(game_view)
 
+
 def show_guide():
     """ Shows the Guide window """
     guide_view = GuideView(go_back_to_menu)
     arcade.get_window().show_view(guide_view)
 
+
 def exit_game():
     """ Exits the game """
     arcade.close_window()
 
+
 def go_back_to_menu():
     """ Returns to Main menu """
+
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.get_window().show_view(menu_view)
+
 
 def main():
     # Create 'Main Menu' window
@@ -414,6 +420,7 @@ def main():
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     window.show_view(menu_view)
     arcade.run()
+
 
 if __name__ == "__main__":
     main()

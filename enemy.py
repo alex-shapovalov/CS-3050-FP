@@ -136,7 +136,6 @@ class Enemy(arcade.Sprite):
             self.calculate_distance()
             self.move_time += delta_time
 
-
             chasing = False
 
             # If an enemy gets stuck trying to get into a room, after a certain amount of trying the enemy gives up
