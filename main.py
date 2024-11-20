@@ -331,6 +331,7 @@ class Game(arcade.View):
                     self.potion_list.append(potion)
 
                 enemy.kill()
+                self.player.score += 1
 
         for potion in self.potion_list:
             if potion.center_x - POTION_PADDING <= self.player.center_x <= potion.center_x + POTION_PADDING:

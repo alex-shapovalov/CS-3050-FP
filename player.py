@@ -126,6 +126,8 @@ class Player(arcade.Sprite):
             self.axe.texture = self.axe_texture[self.facing]
             if self.change_x == 0 and self.change_y == 0 and not self.damaged:
                 self.texture = self.idle_texture_pair[self.facing]
+            elif self.damaged:
+                self.texture = self.damaged_texture[self.facing]
             else:
                 if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
                     self.facing = FACING_LEFT
