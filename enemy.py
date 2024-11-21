@@ -164,7 +164,6 @@ class Enemy(arcade.Sprite):
 
                     # Choose a random doors
                     if len(options)-1 == 0:
-                        print("how: (", self.center_x, ",", self.center_y,")")
                         self.target = pyglet.math.Vec2(self.center_x, self.center_y)
                         self.target_type = TARGETS["wait"]
                     else:
@@ -178,7 +177,6 @@ class Enemy(arcade.Sprite):
                                 random.randint(self.adj_rooms[options[room_choice]].y + 100,
                                                self.adj_rooms[options[room_choice]].y + self.room.size - 100))
                             self.target_type = TARGETS["wander"]
-                            print("wander outdoors")
 
 
                         else:
@@ -189,7 +187,6 @@ class Enemy(arcade.Sprite):
                             # Update current target
                             self.target = door_choice
                             self.target_type = TARGETS["door"]
-                            print("go through door")
 
                             # Ensures we only change our target once we enter the new room
                         self.wait_until_room = True
@@ -200,7 +197,6 @@ class Enemy(arcade.Sprite):
                         random.randint(self.room.x + 100, self.room.x + self.room.size - 100),
                         random.randint(self.room.y + 100, self.room.y + self.room.size - 100))
                     self.target_type = TARGETS["wander"]
-                    print("wander")
 
                 self.move_time = 0
 
@@ -223,14 +219,12 @@ class Enemy(arcade.Sprite):
                 if not self.room.indoor and not self.adj_rooms[choice].indoor:
                     self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
                     self.target_type = TARGETS["player"]
-                    print("chase between outdoor")
                 else:
                     # player went through a door so we must too
                     self.target = doors[choice]
                     self.next_center_loc = next_room_center[choice]
                     self.target_type = TARGETS["door"]
                     self.wait_until_room = True
-                    print("chase through door")
                 self.move_time = 0
 
             elif self.room == self.player.room:
@@ -241,13 +235,11 @@ class Enemy(arcade.Sprite):
             elif self.move_time < CHANGE_MOVE_TIME and self.distance <= 10:
                 self.target_type = TARGETS["wait"]
                 self.target = pyglet.math.Vec2(self.center_x, self.center_y)
-                # print("waiting")
         else:
             self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
             self.target_type = TARGETS["player"]
 
         if self.target == None:
-            # print("target was none")
             self.target = pyglet.math.Vec2(self.center_x, self.center_y)
             self.target_type = TARGETS["wait"]
 
@@ -295,7 +287,6 @@ class Enemy(arcade.Sprite):
             self.change_x = math.cos(angle) * ENEMY_SPEED
             self.change_y = math.sin(angle) * ENEMY_SPEED
         elif self.distance <= 20 and self.target_type == TARGETS["door"]:
-            # print("door now to center")
             self.target = self.next_center_loc
             self.target_type = TARGETS["center"]
             self.wait_until_room = False
