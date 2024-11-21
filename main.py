@@ -188,15 +188,6 @@ class Game(arcade.View):
         for enemy in self.enemy_list:
             enemy.draw_hit_box()
 
-        for wall in self.world.wall_list:
-            arcade.draw_polygon_outline(wall.get_adjusted_hit_box(), arcade.color.RED, 2)
-
-        for wall in self.world.wall_front_list:
-            arcade.draw_polygon_outline(wall.get_adjusted_hit_box(), arcade.color.RED, 2)
-
-        for wall in self.world.wall_back_list:
-            arcade.draw_polygon_outline(wall.get_adjusted_hit_box(), arcade.color.RED, 2)
-
         for enemy in self.enemy_list:
             enemy.draw_damage_texts()
 
