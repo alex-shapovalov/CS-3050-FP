@@ -1,6 +1,6 @@
 # 🏰 Haunted Castle
 
-**Haunted Castle** is a medieval brawler where you must fight to survive. You will be tested by swarms of scary enemies who will try to take you down. Will you survive, or become one of them?
+**Haunted Castle** is a medieval brawler where you must fight to survive! You will be tested by swarms of scary enemies who will try to take you down. Will you survive, or become one of them?
 
 ---
 
@@ -36,7 +36,7 @@ The enemies you'll encounter in the Haunted Castle:
 
 - **Gameplay**: Experience our fast-paced epic gameplay
   
-  ![Gameplay Video](https://youtu.be/T3nbGtpDcsk)
+  ![Gameplay Video](https://www.youtube.com/watch?v=T3nbGtpDcsk)
 
 ---
 
