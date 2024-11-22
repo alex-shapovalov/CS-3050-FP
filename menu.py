@@ -50,7 +50,7 @@ class MenuView(arcade.View):
         self.draw_background()
 
         # Draw the menu title
-        arcade.draw_text("Main Menu", self.window.width / 2, self.window.height - 100, arcade.color.DARK_RED, font_size=50, anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Haunted Castle", self.window.width / 2, self.window.height - 100, arcade.color.DARK_RED, font_size=50, anchor_x="center", font_name="Kenney Future")
 
         # Draw buttons
         self.draw_buttons()
@@ -96,9 +96,9 @@ class GuideView(arcade.View):
         arcade.draw_text("Game Guide", self.window.width / 2, self.window.height - 100, arcade.color.DARK_RED, font_size=50, anchor_x="center", font_name="Kenney Future")
 
         # Write out guide for the game
-        arcade.draw_text("In this game, you must defend yourself against a horde of enemies.\n"
-                         "Will you protect the land or just perish with the rest?\n"
-                         "Use W, A, S, D to move and H to attack.", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
+        arcade.draw_text("In this game, you must defend yourself against a horde of enemies. "
+                         "Will you protect the land or just perish with the rest? "
+                         "Use W, A, S, D to move and H to attack. ", self.window.width / 2, self.window.height / 2, arcade.color.BLACK, font_size=20, anchor_x="center", anchor_y="center", width=600, align="center")
 
         # Draw "Go Back" button
         arcade.draw_text("Go Back", self.window.width / 2, 100, arcade.color.DARK_RED, font_size=30, anchor_x="center", font_name="Kenney Future")

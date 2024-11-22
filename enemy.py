@@ -190,7 +190,7 @@ class Enemy(arcade.Sprite):
                     else:
                         choice = 3
 
-                # If the player moved into another outdoor tile, we dont need to worry about going through doors
+                # If the player moved into another outdoor tile, we don't need to worry about going through doors
                 if not self.room.indoor and not self.adj_rooms[choice].indoor:
                     self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
                     self.target_type = TARGETS["player"]
@@ -236,9 +236,9 @@ class Enemy(arcade.Sprite):
                             w.center_x + w.width > self.center_x - self.width and self.change_x > 0):
                         self.change_x = 0
 
-        curr_room = self.world.find_room(pyglet.math.Vec2(self.center_x, self.center_y))
-        if self.room != curr_room:
-            self.room = curr_room
+        current_room = self.world.find_room(pyglet.math.Vec2(self.center_x, self.center_y))
+        if self.room != current_room:
+            self.room = current_room
             self.adj_rooms = self.world.get_adj_rooms(self.room)
             # This means we made it into the desired room
             self.wait_until_room = False

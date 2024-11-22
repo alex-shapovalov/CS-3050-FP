@@ -288,7 +288,7 @@ class Game(arcade.View):
             enem_bottom = enemy.center_y - enemy.height / 2
             e_wall_bottom = e_wall[0].center_y - e_wall[0].height / 2
 
-            # Remove enem from scene sprite lists to avoid conflicts when appending later
+            # Remove enemy from scene sprite lists to avoid conflicts when appending later
             if enemy in self.scene.get_sprite_list("enemy_back"):
                 self.scene.get_sprite_list("enemy_back").remove(enemy)
             elif enemy in self.scene.get_sprite_list("enemy_mid_b"):
