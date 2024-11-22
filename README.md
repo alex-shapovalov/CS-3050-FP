@@ -34,7 +34,7 @@ The enenmies you'll encounter in the Haunted Castle:
 
 ## 🖥️ Game Highlights
 
-- **Gameplay**: Engaging and fast-paced exploration with intricate level design.
+- **Gameplay**: Experience our fast-paced epic gameplay
   
   ![Gameplay Gif](https://github.com/alex-shapovalov/CS-3050-FP/blob/main/images/game.gif)
 
