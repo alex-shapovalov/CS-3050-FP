@@ -1,4 +1,3 @@
-# Base code from: https://api.arcade.academy/en/latest/examples/view_screens_minimal.html
 import arcade
 import os
 
@@ -41,7 +40,7 @@ class MenuView(arcade.View):
 
     def draw_background(self):
         # Load background texture
-        background_texture = arcade.load_texture("mm.jpg")
+        background_texture = arcade.load_texture("sprites/menu/mm.jpg")
         arcade.draw_lrwh_rectangle_textured(0, 0, self.window.width, self.window.height, background_texture)
 
     def on_draw(self):
@@ -84,7 +83,7 @@ class GuideView(arcade.View):
 
     def draw_background(self):
         # Load background texture
-        background_texture = arcade.load_texture("mm.jpg")
+        background_texture = arcade.load_texture("sprites/menu/mm.jpg")
         arcade.draw_lrwh_rectangle_textured(0, 0, self.window.width, self.window.height, background_texture)
 
     def on_draw(self):

@@ -14,89 +14,72 @@ FACING_LEFT = 1
 HEALING_FACTOR = 10
 
 def load_texture_pair(filename):
-        """
-        Load a texture pair, with the second being a mirror image.
-        """
+        """ Load a texture pair, with the second being a mirror image """
         return [
             arcade.load_texture(filename),
             arcade.load_texture(filename, flipped_horizontally=True)
         ]
 
 class Player(arcade.Sprite):
-    """ Player Class """
-
-    
+    """ Class which handles enemy logic, movement, and damage """
     def __init__(self, health, damage, sprite_scaling, world, screen_width, screen_height):
-        """Initialize player"""
-
-        # initialize player
         super().__init__(
             scale=sprite_scaling
         )
 
-
-        # following values are subject to change
         self.health: int = health
         self.damage: int = damage
         self.score = 0
-
         self.center_x = screen_width / 2
         self.center_y = screen_height / 2
-
-        self.original_texture = arcade.load_texture("player.png")
+        self.original_texture = arcade.load_texture("sprites/player_walk/player.png")
         self.width = self.original_texture.width/2
         self.height = self.original_texture.height
 
         hitbox = []
         self.hitbox_width = self.width/3
         self.hitbox_height = self.height/6
-        num_points = 20  # Adjust for more precision
+        num_points = 20
         for i in range(num_points):
             angle = math.radians(360 / num_points * i)
             x = self.hitbox_width * math.cos(angle)
             y = self.hitbox_height * math.sin(angle) - self.height/2
             hitbox.append((x, y))
         self.set_hit_box(hitbox)
-
         self.velocity = [0,0]
-
         self.screen_width: int = screen_width
         self.screen_height: int = screen_height
         self.damaged = False
         self.damaged_time = 0
-
         self.is_attacking = False
-
         self.facing = FACING_RIGHT
         self.world = world
         self.room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
-
-        self.idle_texture_pair = load_texture_pair(f"player.png")
-        self.walking_texture_pair = load_texture_pair(f"player.png")
-        self.damaged_texture = arcade.load_texture_pair("player_damaged.png")
-
+        self.idle_texture_pair = load_texture_pair(f"sprites/player_walk/player.png")
+        self.walking_texture_pair = load_texture_pair(f"sprites/player_walk/player.png")
+        self.damaged_texture = arcade.load_texture_pair("sprites/player_walk/player_damaged.png")
         self.axe = arcade.Sprite(scale=sprite_scaling, hit_box_algorithm=None)
-        self.axe_texture = load_texture_pair("axe.png")
+        self.axe_texture = load_texture_pair("sprites/misc/axe.png")
         self.axe.texture = self.axe_texture[self.facing]
         self.axe.position = self.position
-
 
         self.attack_curr_texture = 0
         self.attack_animation = []
         for i in range(3):
-            filename = f'player_anim_frames/player-f{i+1}.png'
+            filename = f'sprites/player_attack/player_attack_{i+1}.png'
             texture = load_texture_pair(filename)
             self.attack_animation.append(texture)
 
         self.walk_curr_texture = 0
         self.walking_animation = []
         for i in range(4):
-            filename = f'player_walk_anim/player_walk-f{i+1}.png'
+            filename = f'sprites/player_walk/player_walk_{i+1}.png'
             texture = load_texture_pair(filename)
             self.walking_animation.append(texture)
 
 
     def update_velocity(self, vel):
+        """ Keeps velocity to a manageable value """
         if vel[0] != -1:
             self.velocity[0] = vel[0]
         if vel[1] != -1:
@@ -105,6 +88,7 @@ class Player(arcade.Sprite):
         return self.velocity
 
     def on_update(self, delta_time):
+        """ Continually updating the player instance """
         self.axe.visible = True
 
         room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
@@ -148,7 +132,7 @@ class Player(arcade.Sprite):
                 self.texture = self.walking_animation[int(self.walk_curr_texture)][self.facing]
 
     def player_receive_damage(self, amount):
-        '''Recieve damage from enemy with invincibility frames'''
+        """ Receive damage from enemy, includes invincibility frames """
         # Invincibility frames
         if time.time() - self.damaged_time >= 1.5:
             self.texture = self.damaged_texture[self.facing]
@@ -161,15 +145,16 @@ class Player(arcade.Sprite):
             pass
 
     def player_give_damage(self, enemy_list):
-        '''Inflict damage onto enemy if its in range'''
+        """ Inflict damage onto enemy if its in range """
         for enemy in enemy_list:
             if enemy.target_type == 3:
-                enemy.calculate_distance() # recalculate distance to ensure player can always hit enemy in range
-                if enemy.distance <= PLAYER_PADDING: # this if statement is subject to change
+                # Re-calculate distance to ensure player can always hit enemy in range
+                enemy.calculate_distance()
+                if enemy.distance <= PLAYER_PADDING:
                     return enemy.enemy_receive_damage()
                 
     def heal_player(self):
-        '''Heal player the amount of the healing factor'''
+        """ Heal player the amount of the healing factor """
         if self.health + HEALING_FACTOR > 100:
             self.health = 100
         else:

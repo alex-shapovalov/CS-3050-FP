@@ -4,11 +4,10 @@ import arcade.key
 import pyglet
 import time
 import os
-from world import World, ROOM_SIZE
+from world import World
 from player import Player
 from enemy import Enemy
 from menu import MenuView, GuideView, EscView, DeathView
-import random
 
 SCREEN_WIDTH = 1400
 SCREEN_HEIGHT = 1000
@@ -22,14 +21,12 @@ PLAYER_DAMAGE = 50
 ENEMY_HEALTH = 100
 ENEMY_DAMAGE = 10
 MAX_ENEMIES = 15
-COLOR = arcade.color.AMAZON
-
 POTION_PADDING = 25
+COLOR = arcade.color.AMAZON
 
 
 class Game(arcade.View):
     """ Class which runs the entire game including menu switching, GUI, rendering, and enemy spawning """
-
     def __init__(self):
         super().__init__()
 
@@ -84,7 +81,7 @@ class Game(arcade.View):
         self.scene.add_sprite_list("player_fore")
         self.scene.add_sprite_list("enemy_fore")
 
-        # moving lists into the scene
+        # Moving lists into the scene
         self.scene.add_sprite_list_after("wall", "enemy_mid_b", True, self.world.wall_list)
         self.scene.add_sprite_list_after("wall_front", "enemy_fore", True, self.world.wall_front_list)
         self.scene.add_sprite_list_before("wall_back", "enemy_back", True, self.world.wall_back_list)
@@ -94,16 +91,21 @@ class Game(arcade.View):
 
         # Setting up the player
         self.player = Player(PLAYER_HEALTH, PLAYER_DAMAGE, SPRITE_SCALING, self.world, SCREEN_WIDTH, SCREEN_HEIGHT)
-
         self.scene.add_sprite("player_fore", self.player)
         self.scene.add_sprite("player_fore", self.player.axe)
+
+        # Setting up potions
         self.potion_list = arcade.SpriteList()
 
+        # Player and wall filters
         player_filter = pymunk.ShapeFilter(categories=0b1000, mask=0b0111)
         wall_filter = pymunk.ShapeFilter(categories=0b0100, mask=0b1011)
 
+        # Completing physics setup
         self.physics_engine = arcade.PymunkPhysicsEngine()
-        self.physics_engine.add_sprite(self.player, mass=10, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+        self.physics_engine.add_sprite(self.player,
+                                       mass=10,
+                                       moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player")
         self.physics_engine.add_sprite_list(self.world.wall_list, body_type=1, collision_type="wall")
         self.physics_engine.add_sprite_list(self.world.wall_front_list, body_type=1, collision_type="wall")
@@ -137,8 +139,13 @@ class Game(arcade.View):
             x = bar_x + i * rect_width
             arcade.draw_rectangle_filled(x + rect_width / 2, bar_y, rect_width, bar_height, color, )
 
-        arcade.draw_text(str(self.player.health) + " / 100", bar_x + 200, bar_y - 10, arcade.color.WHITE, font_size=20,
-                         anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text(str(self.player.health) + " / 100",
+                         bar_x + 200,
+                         bar_y - 10,
+                         arcade.color.WHITE,
+                         font_size=20,
+                         anchor_x="center",
+                         font_name="Kenney Future")
 
     def draw_score(self):
         """ Draw the score and highscore of the user """
@@ -160,29 +167,27 @@ class Game(arcade.View):
             with open("highscore.txt", 'w') as file:
                 file.write(str(self.player.score))
 
-        arcade.draw_text("Score: " + str(self.player.score), score_x, score_y - 10, arcade.color.WHITE, font_size=20,
-                         anchor_x="center", font_name="Kenney Future")
-        arcade.draw_text("Highscore: " + str(highscore), score_x, score_y - 50, arcade.color.WHITE, font_size=20,
-                         anchor_x="center", font_name="Kenney Future")
+        arcade.draw_text("Score: " + str(self.player.score),
+                         score_x,
+                         score_y - 10,
+                         arcade.color.WHITE,
+                         font_size=20,
+                         anchor_x="center",
+                         font_name="Kenney Future")
+        arcade.draw_text("Highscore: " + str(highscore),
+                         score_x,
+                         score_y - 50,
+                         arcade.color.WHITE,
+                         font_size=20,
+                         anchor_x="center",
+                         font_name="Kenney Future")
 
     def on_draw(self):
-        """ Render the screen """
+        """ Render the screen and screen elements """
         self.clear()
         self.camera.use()
-        # arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.background)
-        # arcade.draw_lrwh_rectangle_textured(SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, self.background)
-
-        # Draw the rooms. For now, indoor rooms are just grey rectangles. The background is already green, so there's
-        # no need to draw the outdoor rooms. for i in range(len(self.world.rooms)): for j in range(len(
-        # self.world.rooms[i])): room = self.world.rooms[i][j] if (room.indoor): arcade.draw_rectangle_filled(
-        # room.x+0.5*ROOM_SIZE, room.y+0.5*ROOM_SIZE, room.size, room.size, arcade.color.BATTLESHIP_GREY)
-
         self.scene.draw()
-
-        # self.world.wall_list.draw()
-
         self.draw_health_bar()
-
         self.draw_score()
 
         for enemy in self.enemy_list:
@@ -205,7 +210,6 @@ class Game(arcade.View):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-
         self.time_since_last_spawn += delta_time
         # If an enemy hasn't spawned in x amount of time, spawn another
         if self.time_since_last_spawn > self.spawn_time and len(self.enemy_list) < MAX_ENEMIES:
@@ -224,12 +228,16 @@ class Game(arcade.View):
 
             if enemy.rand_num != 3:
                 enemy_filter = pymunk.ShapeFilter(categories=0b0010, mask=0b1101)
-                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                self.physics_engine.add_sprite(enemy,
+                                               mass=1,
+                                               moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                                collision_type="enemy")
                 self.physics_engine.get_physics_object(enemy).shape.filter = enemy_filter
             else:
                 ghost_filter = pymunk.ShapeFilter(categories=0b0001, mask=0b1010)
-                self.physics_engine.add_sprite(enemy, mass=1, moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                self.physics_engine.add_sprite(enemy,
+                                               mass=1,
+                                               moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                                collision_type="ghost")
                 self.physics_engine.get_physics_object(enemy).shape.filter = ghost_filter
 
@@ -271,12 +279,12 @@ class Game(arcade.View):
 
         # Update enemies z-index:
         for enemy in self.enemy_list:
-            # get closest wall to enemy
+            # Get closest wall to enemy
             self.physics_engine.set_velocity(enemy, (enemy.change_x, enemy.change_y))
 
             e_wall = arcade.get_closest_sprite(enemy, self.world.wall_list)
 
-            # find bottom point of sprites for later
+            # Find bottom point of sprites for later
             enem_bottom = enemy.center_y - enemy.height / 2
             e_wall_bottom = e_wall[0].center_y - e_wall[0].height / 2
 
@@ -332,7 +340,6 @@ class Game(arcade.View):
 
     def on_key_press(self, key, modifiers):
         """ Controls key presses and input """
-
         # If the player presses a key, update the speed
         self.keys_pressed.add(key)
 
@@ -350,7 +357,6 @@ class Game(arcade.View):
 
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key """
-
         # Remove that key from our set to update movement
         if key in self.keys_pressed:
             self.keys_pressed.remove(key)
@@ -376,8 +382,6 @@ class Game(arcade.View):
         # Update velocity and physics engine
         updated_vel = self.player.update_velocity(vec_vel)
         self.physics_engine.set_velocity(self.player, updated_vel)
-        
-
 
 def start_game():
     """ Creates the Game window """
@@ -385,24 +389,19 @@ def start_game():
     game_view.setup()
     arcade.get_window().show_view(game_view)
 
-
 def show_guide():
     """ Shows the Guide window """
     guide_view = GuideView(go_back_to_menu)
     arcade.get_window().show_view(guide_view)
 
-
 def exit_game():
     """ Exits the game """
     arcade.close_window()
 
-
 def go_back_to_menu():
     """ Returns to Main menu """
-
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.get_window().show_view(menu_view)
-
 
 def main():
     # Create 'Main Menu' window
@@ -412,7 +411,6 @@ def main():
     menu_view = MenuView(start_game, show_guide, exit_game, SCREEN_WIDTH, SCREEN_HEIGHT)
     window.show_view(menu_view)
     arcade.run()
-
 
 if __name__ == "__main__":
     main()

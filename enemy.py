@@ -1,10 +1,8 @@
 import arcade
 import random
 import math
-import time
-from damage import DamageText
-
 import pyglet.math
+from damage import DamageText
 
 SPRITE_SCALING = 0.5
 ENEMY_SPEED = 250
@@ -17,18 +15,13 @@ TARGET_DOOR_BUFFER = 25
 STUCK_TIME = 8
 MAX_CHASE_TIME = 1.5
 CHASE_RANGE = 100
-
 FACING_RIGHT = 0
 FACING_LEFT = 1
-
 SKELETON = 1
 ZOMBIE = 2
 GHOST = 3
-
 GHOST_DMG_MULTIPLIER = 0.5
-
 DROP_HEALING_POTION = 1
-
 TARGETS = {
     "wait": 4,
     "player": 3,
@@ -39,20 +32,13 @@ TARGETS = {
 
 
 def load_texture_pair(filename):
-    """
-        Load a texture pair, with the second being a mirror image.
-        """
-    return [
-        arcade.load_texture(filename),
-        arcade.load_texture(filename, flipped_horizontally=True)
-    ]
-
+    """ Load a texture pair, with the second being a mirror image """
+    return [arcade.load_texture(filename),
+            arcade.load_texture(filename, flipped_horizontally=True)]
 
 class Enemy(arcade.Sprite):
     """ Class which handles enemy logic, movement, and damage """
-
-    def __init__(self, player, player_damage, enemy_list, world, sprite_scaling, screen_width, screen_height,
-                 health=100, damage=10, attack_type="melee", image="enemy.png"):
+    def __init__(self, player, player_damage, enemy_list, world, sprite_scaling, screen_width, screen_height, health=100, damage=10, attack_type="melee", image="sprites/skeleton_walk/skeleton_animation_1.png"):
         super().__init__(image, sprite_scaling)
         self.player = player
         self.player_damage = player_damage
@@ -92,7 +78,6 @@ class Enemy(arcade.Sprite):
         self.near_center = False
 
         # Determine which self.room we are in:
-
         self.rand_num = random.randint(1, 3)
 
         hitbox = []
@@ -109,25 +94,23 @@ class Enemy(arcade.Sprite):
         self.facing = FACING_RIGHT
 
         if self.rand_num == SKELETON:
-            self.idle_texture_pair = load_texture_pair(f"enemy.png")
-
+            self.idle_texture_pair = load_texture_pair(f"sprites/skeleton_walk/skeleton_animation_1.png")
             self.walk_curr_texture = 0
             self.walking_animation = []
             for i in range(4):
-                filename = f'Skele_anim/skele_anim-f{i + 1}.png'
+                filename = f"sprites/skeleton_walk/skeleton_animation_{i + 1}.png"
                 texture = load_texture_pair(filename)
                 self.walking_animation.append(texture)
         elif self.rand_num == ZOMBIE:
-            self.idle_texture_pair = load_texture_pair(f"Zombie_anim/zomb_anim-f1.png")
-
+            self.idle_texture_pair = load_texture_pair(f"sprites/zombie_walk/zombie_animation_1.png")
             self.walk_curr_texture = 0
             self.walking_animation = []
             for i in range(4):
-                filename = f'Zombie_anim/zomb_anim-f{i + 1}.png'
+                filename = f"sprites/zombie_walk/zombie_animation_{i + 1}.png"
                 texture = load_texture_pair(filename)
                 self.walking_animation.append(texture)
         else:
-            self.idle_texture_pair = load_texture_pair(f"ghost.png")
+            self.idle_texture_pair = load_texture_pair(f"sprites/ghost_walk/ghost.png")
             self.damage = int(self.damage * GHOST_DMG_MULTIPLIER)
 
     def update_targets(self, delta_time):
@@ -142,7 +125,6 @@ class Enemy(arcade.Sprite):
             if self.wait_until_room and self.move_time > STUCK_TIME:
                 self.wait_until_room = False
 
-
             # Check if the enemy is in the same room, if not see if we are chasing hte player into another room
             if self.room != self.player.room and self.chase_time <= MAX_CHASE_TIME and self.target_type == TARGETS[
                 "player"]:
@@ -154,13 +136,10 @@ class Enemy(arcade.Sprite):
                 # Have enemy randomly choose how to walk: 1->pick a door to go through | 2-4->randomly move in the current room
                 choice = random.randint(1, 4)
                 if choice != 1:
-                    # find the doors of the current room
+                    # Find the doors of the current room
                     self.next_center_loc = None
                     doors, next_room_center = self.find_doors()
-
                     options = [i for i in range(len(doors)) if doors[i]]
-                    # if not self.room.indoor:
-                    #     options += [room for room in self.adj_rooms if room.indoor]
 
                     # Choose a random doors
                     if len(options)-1 == 0:
@@ -177,8 +156,6 @@ class Enemy(arcade.Sprite):
                                 random.randint(self.adj_rooms[options[room_choice]].y + 100,
                                                self.adj_rooms[options[room_choice]].y + self.room.size - 100))
                             self.target_type = TARGETS["wander"]
-
-
                         else:
                             # We chose an indoor room we must go through the door:
                             door_choice = doors[options[room_choice]]
@@ -190,7 +167,6 @@ class Enemy(arcade.Sprite):
 
                             # Ensures we only change our target once we enter the new room
                         self.wait_until_room = True
-
                 else:
                     # Picks a random point within our current room and sets our target to wander
                     self.target = pyglet.math.Vec2(
@@ -203,7 +179,6 @@ class Enemy(arcade.Sprite):
             elif self.room != self.player.room and chasing:
                 # If we are chasing the player and they enter another room, chase them into that room
                 doors, next_room_center = self.find_doors()
-                choice = -1
                 if self.player.room.x - 5 <= self.room.x <= self.player.room.x + 5:
                     if self.player.room.y > self.room.y:
                         choice = 0
@@ -220,7 +195,7 @@ class Enemy(arcade.Sprite):
                     self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
                     self.target_type = TARGETS["player"]
                 else:
-                    # player went through a door so we must too
+                    # Player went through a door so we must too
                     self.target = doors[choice]
                     self.next_center_loc = next_room_center[choice]
                     self.target_type = TARGETS["door"]
@@ -228,7 +203,7 @@ class Enemy(arcade.Sprite):
                 self.move_time = 0
 
             elif self.room == self.player.room:
-                # # If we are in the room with the player go towards the player
+                # If we are in the room with the player go towards the player
                 self.target = pyglet.math.Vec2(self.player.center_x, self.player.center_y)
                 self.target_type = TARGETS["player"]
 
@@ -244,6 +219,7 @@ class Enemy(arcade.Sprite):
             self.target_type = TARGETS["wait"]
 
     def update_walls_room(self):
+        """ Updates walls and rooms as we move """
         wall = (self.collides_with_list(self.world.wall_list) + self.collides_with_list(
             self.world.wall_front_list) +
                 self.collides_with_list(self.world.wall_back_list))
@@ -270,7 +246,6 @@ class Enemy(arcade.Sprite):
 
     def update(self, delta_time: float = 1 / 60):
         """ Constantly re-calculates where the player is for following along with collisions and pushbacks """
-
         # See if our current target needs to be updated
         self.update_targets(delta_time)
 
@@ -296,7 +271,6 @@ class Enemy(arcade.Sprite):
             self.near_center = False
             self.target_type = TARGETS["wait"]
             self.target = pyglet.math.Vec2(self.center_x, self.center_y)
-
 
         # If our target is player and we are still in range, reset chase timer
         if self.distance <= CHASE_RANGE and self.target_type == TARGETS["player"]:
@@ -350,7 +324,6 @@ class Enemy(arcade.Sprite):
             elif self.change_x > 0:
                 self.facing = FACING_RIGHT
             if self.rand_num == ZOMBIE or self.rand_num == SKELETON:
-                # walking animation code
                 self.walk_curr_texture += delta_time * 10
                 if self.walk_curr_texture >= len(self.walking_animation):
                     self.walk_curr_texture = 0
@@ -364,15 +337,14 @@ class Enemy(arcade.Sprite):
         self.distance = math.sqrt((self.target.x - self.center_x) ** 2 + (self.target.y - self.center_y) ** 2)
 
     def find_doors(self):
+        """ Helper function to find doors in a room """
         doors = []
         next_room_center = []
         # Check to see what doors the current room has:
         # Each if stores the doors location and the center of the room on the other side
         if self.room.north:
-            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                        self.room.y + self.room.size - TARGET_DOOR_BUFFER)
-            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                     self.room.y + self.room.size + self.room.size / 2))
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size - TARGET_DOOR_BUFFER)
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size + self.room.size / 2))
             doors.append(door_loc)
         else:
             next_room_center.append(None)
@@ -380,18 +352,15 @@ class Enemy(arcade.Sprite):
 
         if self.room.south:
             door_loc = pyglet.math.Vec2(self.room.x + (self.room.size / 2), self.room.y + TARGET_DOOR_BUFFER * 6)
-            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2,
-                                                     self.room.y - self.room.size / 2))
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y - self.room.size / 2))
             doors.append(door_loc)
         else:
             next_room_center.append(None)
             doors.append(None)
 
         if self.room.east:
-            door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2,
-                                        self.room.y + self.room.size / 2)
-            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2,
-                                                     self.room.y + self.room.size / 2))
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
+            next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2, self.room.y + self.room.size / 2))
             doors.append(door_loc)
         else:
             next_room_center.append(None)
@@ -418,7 +387,7 @@ class Enemy(arcade.Sprite):
         self.damage_text = [text for text in self.damage_text if text.update()]
 
     def drop_potion(self):
-        '''Enemy has a 10% chance to drop a healing potion upon death'''
+        """ Enemy has a 10% chance to drop a healing potion upon death """
         rand_num = random.randint(1,10)
         if rand_num == DROP_HEALING_POTION:
             self.spawn_potion = True
