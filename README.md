@@ -36,7 +36,7 @@ The enemies you'll encounter in the Haunted Castle:
 
 - **Gameplay**: Experience our fast-paced epic gameplay
   
-  ![[Gameplay Video](https://img.youtube.com/vi/T3nbGtpDcsk/0.jpg)](https://www.youtube.com/watch?v=T3nbGtpDcsk)
+[![Gameplay Video](http://img.youtube.com/vi/T3nbGtpDcsk/0.jpg)](http://www.youtube.com/watch?v=T3nbGtpDcsk "Haunted Castle Gameplay")
 
 ---
 
