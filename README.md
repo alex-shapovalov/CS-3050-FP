@@ -1,6 +1,6 @@
 # 🏰 Haunted Castle
 
-**Haunted Castle** is a medieval brawler *add desc*
+**Haunted Castle** is a medieval brawler where you must fight to survive. You will be tested by swarms of scary enemies who will try to take you down. Will you survive, or become one of them?
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## 👻 Enemies Showcase
 
-The enenmies you'll encounter in the Haunted Castle:
+The enemies you'll encounter in the Haunted Castle:
 
 | ![Skeleton](https://github.com/alex-shapovalov/CS-3050-FP/blob/main/sprites/skeleton_walk/skeleton_animation_1.png) | ![Zombie](https://github.com/alex-shapovalov/CS-3050-FP/blob/main/sprites/zombie_walk/zombie_animation_1.png) | ![Ghost](https://github.com/alex-shapovalov/CS-3050-FP/blob/main/sprites/ghost_walk/ghost.png) |
 |:------------------------------------------:|:------------------------------------------:|:------------------------------------------:|
