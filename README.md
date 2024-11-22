@@ -36,7 +36,7 @@ The enenmies you'll encounter in the Haunted Castle:
 
 - **Gameplay**: Experience our fast-paced epic gameplay
   
-  ![Gameplay Video](https://github.com/alex-shapovalov/CS-3050-FP/blob/main/images/game.mp4)
+  ![Gameplay Video](https://youtu.be/T3nbGtpDcsk)
 
 ---
 
