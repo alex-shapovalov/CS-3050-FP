@@ -53,18 +53,6 @@ class Game(arcade.View):
         self.floor_list_indoor = arcade.SpriteList()
         self.floor_list_outdoor = arcade.SpriteList()
 
-    def cleanup(self):
-        """ Cleanup class on restart """
-        self.enemy_list = None
-        self.player = None
-        self.physics_engine = None
-        self.floor_list_indoor = None
-        self.floor_list_outdoor = None
-        self.wall_cover_list = None
-        self.scene = None
-        self.world = None
-        self.camera = None
-
     def setup(self):
         """ Initialization class to setup the game """
         self.world.setup()
