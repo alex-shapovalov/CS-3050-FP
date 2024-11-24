@@ -3,15 +3,7 @@ import pyglet
 import math
 import time
 import enemy
-
-PLAYER_PADDING = 150
-UPDATES_PER_FRAME = 5
-WALL_WIDTH = 79
-
-FACING_RIGHT = 0
-FACING_LEFT = 1
-
-HEALING_FACTOR = 10
+import constants
 
 def load_texture_pair(filename):
         """ Load a texture pair, with the second being a mirror image """
@@ -52,7 +44,7 @@ class Player(arcade.Sprite):
         self.damaged = False
         self.damaged_time = 0
         self.is_attacking = False
-        self.facing = FACING_RIGHT
+        self.facing = constants.FACING_RIGHT
         self.world = world
         self.room = self.world.find_room(pyglet.math.Vec2(self.center_x,self.center_y))
         self.idle_texture_pair = load_texture_pair(f"sprites/player_walk/player.png")
@@ -120,13 +112,13 @@ class Player(arcade.Sprite):
             else:
                 # change the direction the player is facing depending on the movement
                 if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
-                    self.facing = FACING_LEFT
+                    self.facing = constants.FACING_LEFT
                 elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
-                    self.facing = FACING_RIGHT
+                    self.facing = constants.FACING_RIGHT
                 elif self.change_x < 0:
-                    self.facing = FACING_LEFT
+                    self.facing = constants.FACING_LEFT
                 elif self.change_x > 0:
-                    self.facing = FACING_RIGHT
+                    self.facing = constants.FACING_RIGHT
 
                 if not self.damaged:
                     self.texture = self.walking_texture_pair[self.facing]
@@ -157,12 +149,12 @@ class Player(arcade.Sprite):
             if enemy.target_type == 3:
                 # Re-calculate distance to ensure player can always hit enemy in range
                 enemy.calculate_distance()
-                if enemy.distance <= PLAYER_PADDING:
+                if enemy.distance <= constants.PLAYER_PLAYER_PADDING:
                     return enemy.enemy_receive_damage()
                 
     def heal_player(self):
         """ Heal player the amount of the healing factor """
-        if self.health + HEALING_FACTOR > 100:
+        if self.health + constants.HEALING_FACTOR > 100:
             self.health = 100
         else:
-            self.health += HEALING_FACTOR
+            self.health += constants.HEALING_FACTOR
