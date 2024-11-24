@@ -191,9 +191,6 @@ class Game(arcade.View):
         self.draw_score()
 
         for enemy in self.enemy_list:
-            enemy.draw_hit_box()
-
-        for enemy in self.enemy_list:
             enemy.draw_damage_texts()
 
         for potion in self.potion_list:
@@ -324,7 +321,7 @@ class Game(arcade.View):
             if enemy.health <= 0:
                 enemy.drop_potion()
                 if enemy.spawn_potion:
-                    potion = arcade.Sprite("Potion.png", scale=1)
+                    potion = arcade.Sprite("sprites/misc/potion.png", scale=1)
                     potion.center_x = enemy.center_x
                     potion.center_y = enemy.center_y
                     self.potion_list.append(potion)

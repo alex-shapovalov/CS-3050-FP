@@ -80,17 +80,6 @@ class Enemy(arcade.Sprite):
         # Determine which self.room we are in:
         self.rand_num = random.randint(1, 3)
 
-        hitbox = []
-        self.hitbox_width = self.width
-        self.hitbox_height = self.height / 3
-        num_points = 20  # Adjust for more precision
-        for i in range(num_points):
-            angle = math.radians(360 / num_points * i)
-            x = self.hitbox_width * math.cos(angle)
-            y = self.hitbox_height * math.sin(angle) - self.height
-            hitbox.append((x, y))
-        self.set_hit_box(hitbox)
-
         self.facing = FACING_RIGHT
 
         if self.rand_num == SKELETON:
@@ -112,6 +101,18 @@ class Enemy(arcade.Sprite):
         else:
             self.idle_texture_pair = load_texture_pair(f"sprites/ghost_walk/ghost.png")
             self.damage = int(self.damage * GHOST_DMG_MULTIPLIER)
+
+        hitbox = []
+        self.hitbox_width = self.width/(4 * sprite_scaling)
+        self.hitbox_height = self.height/(8 * sprite_scaling)
+        num_points = 20  # Adjust for more precision
+        for i in range(num_points):
+            angle = math.radians(360 / num_points * i)
+            x = self.hitbox_width * math.cos(angle)
+            y = self.hitbox_height * math.sin(angle) - self.height * (1.5-sprite_scaling)
+            hitbox.append((x, y))
+        self.set_hit_box(hitbox)
+
 
     def update_targets(self, delta_time):
         if self.rand_num != GHOST:
@@ -340,10 +341,11 @@ class Enemy(arcade.Sprite):
         """ Helper function to find doors in a room """
         doors = []
         next_room_center = []
+        height_off = self.height * (self.scale - 0.5)
         # Check to see what doors the current room has:
         # Each if stores the doors location and the center of the room on the other side
         if self.room.north:
-            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size - TARGET_DOOR_BUFFER)
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size - TARGET_DOOR_BUFFER + height_off)
             next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y + self.room.size + self.room.size / 2))
             doors.append(door_loc)
         else:
@@ -351,7 +353,7 @@ class Enemy(arcade.Sprite):
             doors.append(None)
 
         if self.room.south:
-            door_loc = pyglet.math.Vec2(self.room.x + (self.room.size / 2), self.room.y + TARGET_DOOR_BUFFER * 6)
+            door_loc = pyglet.math.Vec2(self.room.x + (self.room.size / 2), self.room.y + TARGET_DOOR_BUFFER * 6 + height_off)
             next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size / 2, self.room.y - self.room.size / 2))
             doors.append(door_loc)
         else:
@@ -359,7 +361,7 @@ class Enemy(arcade.Sprite):
             doors.append(None)
 
         if self.room.east:
-            door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
+            door_loc = pyglet.math.Vec2(self.room.x + self.room.size - TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2 + height_off)
             next_room_center.append(pyglet.math.Vec2(self.room.x + self.room.size + self.room.size / 2, self.room.y + self.room.size / 2))
             doors.append(door_loc)
         else:
@@ -367,7 +369,7 @@ class Enemy(arcade.Sprite):
             doors.append(None)
 
         if self.room.west:
-            door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2)
+            door_loc = pyglet.math.Vec2(self.room.x + TARGET_DOOR_BUFFER * 2, self.room.y + self.room.size / 2 + height_off)
             next_room_center.append(
                 pyglet.math.Vec2(self.room.x - self.room.size / 2, self.room.y + self.room.size / 2))
             doors.append(door_loc)
