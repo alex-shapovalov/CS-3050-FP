@@ -99,20 +99,26 @@ class Player(arcade.Sprite):
             self.damaged = False
 
         if self.is_attacking:
+            # So the animation looks smoother, make axe invisible when the user attacks.
             self.axe.visible = False
-            self.attack_curr_texture += delta_time * 20
 
+            # attack animation
+            self.attack_curr_texture += delta_time * 20
             if self.attack_curr_texture >= len(self.attack_animation):
                 self.attack_curr_texture = 0
                 self.is_attacking = False
             self.texture = self.attack_animation[int(self.attack_curr_texture)][self.facing]
         else:
+            # If the user moves in the other direction, flip the player and axe sprites to face that direction. 
             self.axe.texture = self.axe_texture[self.facing]
             if self.change_x == 0 and self.change_y == 0 and not self.damaged:
+                # idle sprite
                 self.texture = self.idle_texture_pair[self.facing]
             elif self.damaged:
+                # damaged texture
                 self.texture = self.damaged_texture[self.facing]
             else:
+                # change the direction the player is facing depending on the movement
                 if self.change_x < 0 and (self.change_y < 0 or self.change_y > 0):
                     self.facing = FACING_LEFT
                 elif self.change_x > 0 and (self.change_y < 0 or self.change_y > 0):
@@ -125,6 +131,7 @@ class Player(arcade.Sprite):
                 if not self.damaged:
                     self.texture = self.walking_texture_pair[self.facing]
 
+                # walking animation that loops as long as player is moving and not being damaged
                 self.walk_curr_texture += delta_time*10
                 if self.walk_curr_texture >= len(self.walking_animation):
                     self.walk_curr_texture = 0
